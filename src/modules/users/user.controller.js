@@ -10,7 +10,7 @@ const userRouter = Router();
 userRouter.get(
   "/profile",
   authentication,
-  authorization([RoleEnum.admin, RoleEnum.parent]),
+  // authorization([RoleEnum.admin, RoleEnum.parent]),
   US.getProfile,
 );
 

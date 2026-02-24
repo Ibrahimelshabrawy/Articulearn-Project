@@ -19,48 +19,58 @@ export const signUp = async (req, res, next) => {
     cPassword,
     password,
     gender,
-    provider,
     phone,
     role,
     age,
-    learningLanguage,
-    difficultyLevel,
     parentId,
-    soundSettings,
-    level,
-    xp,
-    badges,
+    stats,
+    difficultyLevel,
+    settings,
+    providers,
   } = req.body;
-  if (cPassword !== password) {
-    throw new Error("Invalid Password", {cause: 400});
+
+  const {provider, providerId} = providers?.[0];
+
+  let hashedPassword = undefined;
+  let encryptPhone = undefined;
+
+  if (provider === ProviderEnum.system) {
+    if (await db_service.findOne({model: userModel, filter: {email}})) {
+      throw new Error("Email Already Exist", {cause: 409});
+    }
+    hashedPassword = await Hash({plainText: password, salt_rounds: SALT_ROUND});
+    encryptPhone = await encrypt(phone);
+  } else {
+    await db_service.findOne({
+      model: userModel,
+      filter: {
+        "providers.provider": provider,
+        "providers.providerId": providerId,
+      },
+    });
   }
-  if (await db_service.findOne({model: userModel, filter: {email}})) {
-    throw new Error("Email Already Exist", {cause: 409});
-  }
+
   const user = await db_service.create({
     model: userModel,
     data: {
       userName,
       email,
       cPassword,
-      password: await Hash({plainText: password, salt_rounds: SALT_ROUND}),
+      password: hashedPassword,
       gender,
-      provider,
-      phone: await encrypt(phone),
+      phone: encryptPhone,
       role,
       age,
-      learningLanguage,
-      difficultyLevel,
       parentId,
-      soundSettings,
-      level,
-      xp,
-      badges,
+      stats,
+      difficultyLevel,
+      settings,
+      providers,
     },
   });
   successResponse({
     res,
-    message: "Sign In Successfully Enjoy 🥳",
+    message: "Sign Up Successfully Enjoy 🥳",
     status: 200,
     data: user,
   });

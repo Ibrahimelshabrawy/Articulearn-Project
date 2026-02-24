@@ -7,6 +7,25 @@ import {
   RoleEnum,
 } from "../../common/enum/user.enum.js";
 
+const providerSchema = new mongoose.Schema(
+  {
+    provider: {
+      type: String,
+      enum: [ProviderEnum.google, ProviderEnum.system],
+      default: ProviderEnum.system,
+      required: true,
+    },
+    providerId: {
+      type: String,
+      default: null,
+      unique: true,
+    },
+  },
+  {
+    _id: false,
+  },
+);
+
 const userSchema = new mongoose.Schema(
   {
     firstName: {
@@ -14,6 +33,7 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 3,
       maxlength: 40,
+      trim: true,
     },
 
     lastName: {
@@ -21,56 +41,54 @@ const userSchema = new mongoose.Schema(
       required: true,
       minlength: 3,
       maxlength: 40,
+      trim: true,
     },
 
     email: {
       type: String,
-      required: function () {
-        return this.provider === ProviderEnum.system ? true : false;
-      },
       unique: true,
       lowercase: true,
+      trim: true,
+      index: true,
+      sparse: true,
     },
 
     phone: {
       type: String,
       required: false,
+      trim: true,
+      index: true,
     },
 
     password: {
       type: String,
-      required: function () {
-        return this.provider == ProviderEnum.system ? true : false;
-      },
     },
 
-    // OAuth Providers (Google - Apple - etc)
-    provider: {
-      type: String,
-      enum: [ProviderEnum.google, ProviderEnum.system],
-      default: ProviderEnum.system,
-    },
-    oauthId: {
-      type: String,
+    // OAuth Providers (Google - System)
+
+    providers: {
+      type: [providerSchema],
+      default: [{provider: ProviderEnum.system}],
     },
 
     // Profile settings
     age: Number,
+    settings: {
+      learningLanguage: {
+        type: String,
+        enum: [LearningLanguageEnum.english, LearningLanguageEnum.arabic],
+        default: LearningLanguageEnum.english,
+      },
 
-    learningLanguage: {
-      type: String,
-      enum: [LearningLanguageEnum.english, LearningLanguageEnum.arabic],
-      default: LearningLanguageEnum.english,
-    },
-
-    difficultyLevel: {
-      type: String,
-      enum: [
-        DifficultyLevelEnum.beginner,
-        DifficultyLevelEnum.intermediate,
-        DifficultyLevelEnum.advanced,
-      ],
-      default: DifficultyLevelEnum.beginner,
+      difficultyLevel: {
+        type: String,
+        enum: [
+          DifficultyLevelEnum.beginner,
+          DifficultyLevelEnum.intermediate,
+          DifficultyLevelEnum.advanced,
+        ],
+        default: DifficultyLevelEnum.beginner,
+      },
     },
     gender: {
       type: String,
@@ -82,48 +100,45 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: [RoleEnum.parent, RoleEnum.user, RoleEnum.admin],
       default: RoleEnum.user,
-    },
-    soundSettings: {
-      microphoneSensitivity: {
-        type: Number,
-        default: 1,
-      },
-      speechSpeed: {
-        type: Number,
-        default: 1,
-      },
+      index: true,
     },
 
     // Progress System
-    level: {
-      type: Number,
-      default: 1,
-    },
-    xp: {
-      type: Number,
-      default: 0,
-    },
-
-    badges: [
-      {
-        title: String,
-        icon: String,
-        date: Date,
+    stats: {
+      level: {
+        type: Number,
+        default: 1,
+        min: 1,
       },
-    ],
+      points: {
+        type: Number,
+        default: 0,
+        min: 0,
+        index: true,
+      },
+
+      badges: [
+        {
+          title: String,
+          icon: String,
+        },
+      ],
+    },
 
     // Parent Access
     parentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
+      default: null,
+      index: true,
     },
   },
   {
     timestamps: true,
-    optimisticConcurrency: true,
-    lean: true,
     strict: true,
-    strictQuery: true,
+    optimisticConcurrency: true,
+    toJSON: {virtuals: true},
+    toObject: {virtuals: true},
   },
 );
 
@@ -139,6 +154,6 @@ userSchema
       lastName,
     });
   });
-const userModel = mongoose.models.user || mongoose.model("user", userSchema);
+const userModel = mongoose.models.User || mongoose.model("User", userSchema);
 
 export default userModel;
