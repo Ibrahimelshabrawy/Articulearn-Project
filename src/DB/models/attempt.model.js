@@ -1,4 +1,3 @@
-import {ref} from "joi";
 import mongoose, {Schema} from "mongoose";
 import {ResultStatsEnum} from "../../common/enum/attempt.enum.js";
 
@@ -45,7 +44,7 @@ const attemptSchema = new mongoose.Schema(
       type: Number,
       default: null,
     },
-    resultStats: {
+    status: {
       type: String,
       enum: [
         ResultStatsEnum.pending,

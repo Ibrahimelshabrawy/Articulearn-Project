@@ -3,6 +3,7 @@ import {
   DifficultyLevelEnum,
   LearningLanguageEnum,
 } from "../../common/enum/user.enum.js";
+import {TypeEnum} from "../../common/enum/exercise.enum.js";
 const exerciseSchema = new mongoose.Schema(
   {
     type: {
@@ -58,7 +59,7 @@ const exerciseSchema = new mongoose.Schema(
       default: [],
       index: true,
     },
-    stopExercise: {
+    isActiveExercise: {
       type: Boolean,
       default: true,
       index: true,
@@ -69,10 +70,17 @@ const exerciseSchema = new mongoose.Schema(
     strict: true,
     toJSON: {virtuals: true},
     toObject: {virtuals: true},
+    id: false,
   },
 );
 
-exerciseSchema.index({title: "text", promptText: "text", tags: "text"});
+exerciseSchema.index(
+  {title: "text", promptText: "text", tags: "text"},
+  {
+    default_language: LearningLanguageEnum.english,
+    language_override: "ignoredLanguageField",
+  },
+);
 
 const exerciseModel =
   mongoose.models.Exercise || mongoose.model("Exercise", exerciseSchema);

@@ -34,6 +34,9 @@ export const find = async ({
   if (options?.populate) {
     doc.populate(options.populate);
   }
+  if (options?.sort) {
+    doc.sort(options.sort);
+  }
   if (options?.skip) {
     doc.skip(options.skip);
   }
@@ -75,11 +78,43 @@ export const findOneAndUpdate = async ({
   filter = {},
   update = {},
   options = {},
+  select = "",
 } = {}) => {
-  let doc = model.updateOne(filter, update, {
-    new: true,
-    runValidators: true,
-    ...options,
-  });
+  let doc = model
+    .findOneAndUpdate(
+      filter,
+      update,
+      {
+        new: true,
+        runValidators: true,
+        ...options,
+      },
+      select,
+    )
+    .select(select);
   return await doc.exec();
+};
+export const paginate = async ({
+  filter = {},
+  options = {},
+  select = "",
+  page = "all",
+  size = 5,
+  model,
+} = {}) => {
+  let docsCount;
+  let pages;
+  let currentPage;
+  const isAll = page === "all" || page === undefined || page === null;
+  if (!isAll) {
+    const p = Math.max(1, parseInt(page, 10) || 1);
+    const lim = Math.max(1, Math.min(50, parseInt(size, 10) || 5));
+    options.limit = lim;
+    options.skip = (p - 1) * lim;
+    docsCount = await model.countDocuments(filter);
+    pages = Math.ceil(docsCount / lim);
+    currentPage = p;
+  }
+  const result = await find({model, filter, select, options});
+  return {docsCount, limit: options.limit, pages, currentPage, result};
 };

@@ -17,8 +17,6 @@ const providerSchema = new mongoose.Schema(
     },
     providerId: {
       type: String,
-      default: null,
-      unique: true,
     },
   },
   {
@@ -30,7 +28,6 @@ const userSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
-      required: true,
       minlength: 3,
       maxlength: 40,
       trim: true,
@@ -38,7 +35,6 @@ const userSchema = new mongoose.Schema(
 
     lastName: {
       type: String,
-      required: true,
       minlength: 3,
       maxlength: 40,
       trim: true,
@@ -74,7 +70,7 @@ const userSchema = new mongoose.Schema(
     // Profile settings
     age: Number,
     settings: {
-      learningLanguage: {
+      language: {
         type: String,
         enum: [LearningLanguageEnum.english, LearningLanguageEnum.arabic],
         default: LearningLanguageEnum.english,

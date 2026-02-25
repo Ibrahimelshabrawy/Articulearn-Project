@@ -29,25 +29,8 @@ export const signUp = async (req, res, next) => {
     providers,
   } = req.body;
 
-  const {provider, providerId} = providers?.[0];
-
-  let hashedPassword = undefined;
-  let encryptPhone = undefined;
-
-  if (provider === ProviderEnum.system) {
-    if (await db_service.findOne({model: userModel, filter: {email}})) {
-      throw new Error("Email Already Exist", {cause: 409});
-    }
-    hashedPassword = await Hash({plainText: password, salt_rounds: SALT_ROUND});
-    encryptPhone = await encrypt(phone);
-  } else {
-    await db_service.findOne({
-      model: userModel,
-      filter: {
-        "providers.provider": provider,
-        "providers.providerId": providerId,
-      },
-    });
+  if (await db_service.findOne({model: userModel, filter: {email}})) {
+    throw new Error("Email Already Exist", {cause: 409});
   }
 
   const user = await db_service.create({
@@ -56,9 +39,9 @@ export const signUp = async (req, res, next) => {
       userName,
       email,
       cPassword,
-      password: hashedPassword,
+      password: await Hash({plainText: password, salt_rounds: SALT_ROUND}),
       gender,
-      phone: encryptPhone,
+      phone: await encrypt(phone),
       role,
       age,
       parentId,
@@ -117,7 +100,7 @@ export const signUpWithGmail = async (req, res, next) => {
   });
   const payload = ticket.getPayload();
 
-  const {email, email_verified, name, picture} = payload;
+  const {sub, email, email_verified, name, picture} = payload;
 
   // SignUp Steps
   let user = await db_service.findOne({
