@@ -15,13 +15,9 @@ const providerSchema = new mongoose.Schema(
       default: ProviderEnum.system,
       required: true,
     },
-    providerId: {
-      type: String,
-    },
+    providerId: {type: String, default: null},
   },
-  {
-    _id: false,
-  },
+  {_id: false},
 );
 
 const userSchema = new mongoose.Schema(
@@ -31,65 +27,55 @@ const userSchema = new mongoose.Schema(
       minlength: 3,
       maxlength: 40,
       trim: true,
+      required: true,
     },
-
     lastName: {
       type: String,
       minlength: 3,
       maxlength: 40,
       trim: true,
+      required: true,
     },
 
     email: {
       type: String,
+      required: true,
       unique: true,
       lowercase: true,
       trim: true,
       index: true,
-      sparse: true,
     },
 
-    phone: {
-      type: String,
-      required: false,
-      trim: true,
-      index: true,
-    },
+    phone: {type: String, default: null, trim: true, index: true},
 
-    password: {
-      type: String,
-    },
-
-    // OAuth Providers (Google - System)
+    password: {type: String, default: null},
 
     providers: {
       type: [providerSchema],
       default: [{provider: ProviderEnum.system}],
     },
-
-    // Profile settings
-    age: Number,
-    settings: {
-      language: {
-        type: String,
-        enum: [LearningLanguageEnum.english, LearningLanguageEnum.arabic],
-        default: LearningLanguageEnum.english,
-      },
-
-      difficultyLevel: {
-        type: String,
-        enum: [
-          DifficultyLevelEnum.beginner,
-          DifficultyLevelEnum.intermediate,
-          DifficultyLevelEnum.advanced,
-        ],
-        default: DifficultyLevelEnum.beginner,
-      },
+    language: {
+      type: String,
+      enum: [LearningLanguageEnum.english, LearningLanguageEnum.arabic],
+      default: LearningLanguageEnum.english,
     },
+    level: {
+      type: String,
+      enum: [
+        DifficultyLevelEnum.beginner,
+        DifficultyLevelEnum.intermediate,
+        DifficultyLevelEnum.advanced,
+      ],
+      default: DifficultyLevelEnum.beginner,
+    },
+
     gender: {
       type: String,
       enum: [GenderEnum.male, GenderEnum.female],
       default: GenderEnum.male,
+    },
+    age: {
+      type: Number,
     },
 
     role: {
@@ -99,33 +85,18 @@ const userSchema = new mongoose.Schema(
       index: true,
     },
 
-    // Progress System
-    stats: {
-      level: {
-        type: Number,
-        default: 1,
-        min: 1,
-      },
-      points: {
-        type: Number,
-        default: 0,
-        min: 0,
-        index: true,
-      },
-
-      badges: [
-        {
-          title: String,
-          icon: String,
-        },
-      ],
+    parentLinkCode: {
+      type: String,
+      default: null,
+      unique: true,
+      index: true,
     },
 
-    // Parent Access
+    // ✅ Parent link (only for child accounts)
     parentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      default: null,
+      default: undefined,
       index: true,
     },
   },
@@ -133,23 +104,12 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
     strict: true,
     optimisticConcurrency: true,
-    toJSON: {virtuals: true},
-    toObject: {virtuals: true},
   },
 );
+userSchema.index(
+  {parentLinkCode: 1},
+  {unique: true, partialFilterExpression: {parentLinkCode: {$type: "string"}}},
+);
 
-userSchema
-  .virtual("userName")
-  .get(function () {
-    return this.firstName + " " + this.lastName;
-  })
-  .set(function (value) {
-    const [firstName, lastName] = value?.split(" ") || [];
-    this.set({
-      firstName,
-      lastName,
-    });
-  });
 const userModel = mongoose.models.User || mongoose.model("User", userSchema);
-
 export default userModel;

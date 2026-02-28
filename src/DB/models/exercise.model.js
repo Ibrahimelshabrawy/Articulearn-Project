@@ -1,17 +1,17 @@
 import mongoose from "mongoose";
+import {TypeEnum} from "../../common/enum/exercise.enum.js";
 import {
   DifficultyLevelEnum,
   LearningLanguageEnum,
 } from "../../common/enum/user.enum.js";
-import {TypeEnum} from "../../common/enum/exercise.enum.js";
 const exerciseSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: [TypeEnum.game, TypeEnum.sentence, TypeEnum.word],
+      enum: [TypeEnum.pronunciation, TypeEnum.sentence_builder],
       required: true,
-      index: true,
     },
+
     level: {
       type: String,
       enum: [
@@ -20,67 +20,65 @@ const exerciseSchema = new mongoose.Schema(
         DifficultyLevelEnum.advanced,
       ],
       required: true,
-      index: true,
     },
+
     language: {
       type: String,
-      enum: [LearningLanguageEnum.english, LearningLanguageEnum.arabic],
+      enum: [LearningLanguageEnum.arabic, LearningLanguageEnum.english],
       default: LearningLanguageEnum.english,
-      index: true,
     },
+
     title: {
       type: String,
-      trim: true,
       required: true,
+      trim: true,
     },
+
+    // ====== PRONUNCIATION ======
+    // الجملة اللي هيقرأها و ينطقها
     promptText: {
-      // the (word-sentence) that user will pronounce it
-      type: String,
-      trim: true,
-      required: true,
-    },
-    audioReferenceUrl: {
       type: String,
       default: null,
     },
-    tips: {
-      // شوية نصايح يعني
+
+    // الريكورد اللي هيمسعه عشان ينطق شبهه ك وسيلة مساعده انه يسمع النطق الصح
+    referenceAudioUrl: {
+      type: String,
+      default: null,
+    },
+
+    // ====== LISTENING GAME ======
+    // الريكورد اللي هيسمعه عشان يكمل الجملة الناقصة
+    gameAudioUrl: {
+      type: String,
+      default: null,
+    },
+
+    sentenceTemplate: {
+      // Example: "I ___ to school yesterday."
+      type: String,
+      default: null,
+    },
+
+    // الاختيارات اللي هيختار منها الكلمة الناقصة
+    choices: {
       type: [String],
       default: [],
-      /* Example
-      //       "tips": [
-      //   "Focus on the 'sh' sound.",
-      //   "Don't say 'sip'."
-       ]
-      */
     },
-    tags: {
-      type: [String],
-      default: [],
-      index: true,
+
+    correctAnswer: {
+      type: String,
+      default: null,
     },
-    isActiveExercise: {
+
+    isActive: {
       type: Boolean,
       default: true,
-      index: true,
     },
   },
-  {
-    timestamps: true,
-    strict: true,
-    toJSON: {virtuals: true},
-    toObject: {virtuals: true},
-    id: false,
-  },
+  {timestamps: true},
 );
-
-exerciseSchema.index(
-  {title: "text", promptText: "text", tags: "text"},
-  {
-    default_language: LearningLanguageEnum.english,
-    language_override: "ignoredLanguageField",
-  },
-);
+exerciseSchema.index({type: 1, level: 1, language: 1, isActive: 1});
 
 const exerciseModel =
   mongoose.models.Exercise || mongoose.model("Exercise", exerciseSchema);

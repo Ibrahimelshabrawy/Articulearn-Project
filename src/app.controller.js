@@ -10,7 +10,7 @@ const port = process.env.PORT;
 const bootstrap = () => {
   app.use(cors({origin: "*"}));
   app.use(express.json());
-  app.get("/", (req, res) => res.send("Hello World!"));
+  app.get("/", (req, res) => res.send("Welcome To Our Application 🥳"));
   checkConnection();
 
   app.use("/users", userRouter);
@@ -28,6 +28,8 @@ const bootstrap = () => {
     res.status(err.cause || 500).json({message: err.message, stack: err.stack});
   });
 
-  app.listen(port, () => console.log(`Example app listening on port ${port}!`));
+  app.listen(port, () =>
+    console.log(`Articulearn app listening on port ${port}!`),
+  );
 };
 export default bootstrap;

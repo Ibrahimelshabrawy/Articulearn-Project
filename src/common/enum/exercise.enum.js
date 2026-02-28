@@ -1,5 +1,4 @@
 export const TypeEnum = {
-  word: "word",
-  sentence: "sentence",
-  game: "game",
+  sentence_builder: "sentence_builder",
+  pronunciation: "pronunciation",
 };

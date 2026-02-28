@@ -33,8 +33,7 @@ export const authentication = async (req, res, next) => {
   if (!user) {
     throw new Error("User Not Found", {cause: 404});
   }
-
-  user.phone = await decrypt(user.phone);
+  if (user.phone) user.phone = await decrypt(user.phone);
 
   req.user = user;
   next();

@@ -22,18 +22,10 @@ const providerSchema = joi.object({
 export const signUpSchema = {
   body: joi
     .object({
-      userName: joi
-        .string()
-        .pattern(/^[a-zA-Z]+(?:\s[a-zA-Z]+)*$/)
-        .min(3)
-        .max(40)
-        .required()
-        .messages({
-          "string.pattern.base":
-            "Username must contain letters and spaces only",
-        }),
+      firstName: joi.string().min(2).max(30).trim().required(),
+      lastName: joi.string().min(2).max(30).trim().required(),
       phone: joi.string().length(11),
-      providers: joi.array().items(providerSchema).length(1).required(),
+      providers: joi.array().items(providerSchema).length(1),
       email: joi.when("providers", {
         is: joi
           .array()
@@ -66,25 +58,37 @@ export const signUpSchema = {
         .string()
         .valid(GenderEnum.male, GenderEnum.female)
         .default(GenderEnum.male),
-      settings: joi.object({
-        learningLanguage: joi
-          .string()
-          .valid(LearningLanguageEnum.english, LearningLanguageEnum.arabic)
-          .default(LearningLanguageEnum.english),
-        difficultyLevel: joi
-          .string()
-          .valid(
-            DifficultyLevelEnum.beginner,
-            DifficultyLevelEnum.intermediate,
-            DifficultyLevelEnum.advanced,
-          )
-          .default(DifficultyLevelEnum.beginner),
-      }),
+
+      role: joi
+        .string()
+        .valid(RoleEnum.parent, RoleEnum.user)
+        .default(RoleEnum.user),
+
+      parentCode: joi
+        .string()
+        .pattern(/^\d{6}$/)
+        .optional()
+        .messages({
+          "string.pattern.base": "parentCode must be exactly 6 digits",
+        }),
+      language: joi
+        .string()
+        .valid(LearningLanguageEnum.english, LearningLanguageEnum.arabic)
+        .default(LearningLanguageEnum.english),
+      level: joi
+        .string()
+        .valid(
+          DifficultyLevelEnum.beginner,
+          DifficultyLevelEnum.intermediate,
+          DifficultyLevelEnum.advanced,
+        )
+        .default(DifficultyLevelEnum.beginner),
       role: joi
         .string()
         .valid(RoleEnum.user, RoleEnum.admin, RoleEnum.parent)
         .default(RoleEnum.user),
       parentId: joi.string().hex().length(24).allow(null),
     })
-    .required(),
+    .required()
+    .unknown(false),
 };

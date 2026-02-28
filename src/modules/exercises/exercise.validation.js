@@ -10,7 +10,7 @@ export const createExerciseSchema = {
     .object({
       type: joi
         .string()
-        .valid(TypeEnum.game, TypeEnum.sentence, TypeEnum.word)
+        .valid(TypeEnum.pronunciation, TypeEnum.sentence_builder)
         .required(),
       level: joi
         .string()
@@ -37,7 +37,9 @@ export const createExerciseSchema = {
 export const updateExerciseSchema = {
   body: joi
     .object({
-      type: joi.string().valid(TypeEnum.game, TypeEnum.sentence, TypeEnum.word),
+      type: joi
+        .string()
+        .valid(TypeEnum.pronunciation, TypeEnum.sentence_builder),
       level: joi
         .string()
         .valid(
@@ -64,7 +66,7 @@ export const listExerciseQuerySchema = {
   query: joi.object({
     type: joi
       .string()
-      .valid(TypeEnum.game, TypeEnum.sentence, TypeEnum.word)
+      .valid(TypeEnum.pronunciation, TypeEnum.sentence_builder)
       .required(),
     level: joi
       .string()

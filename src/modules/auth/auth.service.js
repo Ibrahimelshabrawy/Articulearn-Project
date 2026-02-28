@@ -11,51 +11,90 @@ import {GenerateToken} from "../../common/utils/jwt/token.service.js";
 
 import {OAuth2Client} from "google-auth-library";
 import {SALT_ROUND, SECRET_KEY} from "../../../config/config.service.js";
+import {resolveParentIdByCode} from "./auth.helper.js";
+import {generateUniqueParentCode} from "../../common/utils/helpers/parentCode.helper.js";
 
 export const signUp = async (req, res, next) => {
   const {
-    userName,
+    firstName,
+    lastName,
     email,
-    cPassword,
     password,
-    gender,
     phone,
-    role,
+    gender,
     age,
-    parentId,
-    stats,
-    difficultyLevel,
-    settings,
+    role = RoleEnum.user,
+    level,
+    language,
     providers,
+    parentCode,
   } = req.body;
 
-  if (await db_service.findOne({model: userModel, filter: {email}})) {
-    throw new Error("Email Already Exist", {cause: 409});
+  const existing = await db_service.findOne({
+    model: userModel,
+    filter: {email},
+    select: "_id",
+    options: {lean: true},
+  });
+
+  if (existing) throw new Error("Email Already Exist", {cause: 409});
+
+  let parentId = null;
+  if (role === RoleEnum.user && parentCode) {
+    parentId = await resolveParentIdByCode({db_service, userModel, parentCode});
   }
 
+  const userData = {
+    firstName,
+    lastName,
+    email,
+    password: await Hash({plainText: password, salt_rounds: SALT_ROUND}),
+    gender,
+    age,
+    role,
+    level,
+    language,
+    providers,
+    parentId,
+  };
+
+  if (phone) userData.phone = await encrypt(phone);
+
+  // 4) create user
   const user = await db_service.create({
     model: userModel,
-    data: {
-      userName,
-      email,
-      cPassword,
-      password: await Hash({plainText: password, salt_rounds: SALT_ROUND}),
-      gender,
-      phone: await encrypt(phone),
-      role,
-      age,
-      parentId,
-      stats,
-      difficultyLevel,
-      settings,
-      providers,
-    },
+    data: userData,
   });
-  successResponse({
+  let parentLinkCode = null;
+  if (role === RoleEnum.parent) {
+    parentLinkCode = await generateUniqueParentCode({db_service, userModel});
+
+    await db_service.updateOne({
+      model: userModel,
+      filter: {_id: user._id},
+      update: {$set: {parentLinkCode}},
+    });
+  }
+
+  const responsePayload = {
+    _id: user._id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+    role: user.role,
+    level: user.level,
+    language: user.language,
+    gender: user.gender,
+    age: user.age,
+    parentId: user.parentId ?? undefined,
+    ...(parentLinkCode ? {parentLinkCode} : {}),
+  };
+
+  return successResponse({
     res,
     message: "Sign Up Successfully Enjoy 🥳",
     status: 200,
-    data: user,
+    data: responsePayload,
   });
 };
 
@@ -66,6 +105,8 @@ export const signIn = async (req, res, next) => {
     filter: {email, provider: ProviderEnum.system},
     options: {lean: true},
   });
+
+  console.log(user);
 
   if (!user) {
     throw new Error("User Not Found", {cause: 404});

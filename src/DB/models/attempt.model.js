@@ -1,27 +1,6 @@
 import mongoose, {Schema} from "mongoose";
 import {ResultStatsEnum} from "../../common/enum/attempt.enum.js";
-
-const phonemeErrorSchema = new mongoose.Schema(
-  {
-    phoneme: {
-      type: String,
-      required: true,
-    },
-    expected: {
-      type: String,
-      default: null,
-    },
-    actual: {
-      type: String,
-      default: null,
-    },
-  },
-  {
-    _id: false,
-    timestamps: true,
-  },
-);
-
+import {TypeEnum} from "../../common/enum/exercise.enum.js";
 const attemptSchema = new mongoose.Schema(
   {
     userId: {
@@ -36,14 +15,24 @@ const attemptSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    audioUrl: {
+
+    // مهم عشان يخدم النوعين
+    type: {
       type: String,
+      enum: [TypeEnum.pronunciation, TypeEnum.sentence_builder],
       required: true,
+      index: true,
     },
-    durationMs: {
-      type: Number,
-      default: null,
-    },
+
+    // ====== Pronunciation submission ======
+    audioUrl: {type: String, default: null},
+    durationMs: {type: Number, default: null},
+    referenceText: {type: String, default: null}, // snapshot من Exercise.promptText
+
+    // ====== Game submission ======
+    selectedAnswer: {type: String, default: null},
+
+    // ====== Result ======
     status: {
       type: String,
       enum: [
@@ -52,50 +41,47 @@ const attemptSchema = new mongoose.Schema(
         ResultStatsEnum.failed,
       ],
       default: ResultStatsEnum.pending,
+      index: true,
     },
-    analysis: {
-      transcript: {
-        // النص اللي السيستم فهمه من كلام اليوزر
-        type: String,
-        default: "",
-      },
-      score: {
-        // الاسكور ده هو نتيجة تحليله للصوت كان دقيق قد ايه
-        type: Number,
-        min: 0,
-        max: 100,
-        default: null,
-        index: true,
-      },
-      phonemeErrors: {
-        type: [phonemeErrorSchema],
-        default: [],
-      },
-    },
-    earnedPoints: {
-      // لكن هنا انا بديله نقط بناء على الاسكور بتاعه كان كام يعني مثلا لو الاسكور اكبر من 80 هديله 6 ولو اقل من 50 هديله 3 وهكذا بقى ع حسب هتمشيها ازاي
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-    attemptRepeats: {
-      type: Number,
-      default: 1,
-      min: 1,
-    },
+
+    score: {type: Number, min: 0, max: 100, default: null},
+    feedback: {type: String, default: null, trim: true},
+
+    isCorrect: {type: Boolean, default: null}, // للعبة
+
+    errorMessage: {type: String, default: null},
   },
   {
     timestamps: true,
     strict: true,
-    toJSON: {virtuals: true},
-    toObject: {virtuals: true},
   },
 );
+
+// validation حسب النوع
+attemptSchema.pre("validate", function (next) {
+  if (this.type === TypeEnum.pronunciation) {
+    if (!this.audioUrl)
+      return next(new Error("audioUrl is required for pronunciation attempt."));
+    if (!this.referenceText)
+      return next(
+        new Error("referenceText is required for pronunciation attempt."),
+      );
+  }
+
+  if (this.type === TypeEnum.sentence_builder) {
+    if (!this.selectedAnswer)
+      return next(
+        new Error("selectedAnswer is required for listening_game attempt."),
+      );
+  }
+
+  next();
+});
 
 attemptSchema.index({userId: 1, createdAt: -1});
 attemptSchema.index({userId: 1, exerciseId: 1, createdAt: -1});
 
-const attempModel =
-  mongoose.models.Attempt || mongoose.model("Attempt", exerciseSchema);
+const attemptModel =
+  mongoose.models.Attempt || mongoose.model("Attempt", attemptSchema);
 
-export default attempModel;
+export default attemptModel;

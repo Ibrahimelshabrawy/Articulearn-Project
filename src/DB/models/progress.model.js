@@ -1,69 +1,39 @@
 import mongoose, {Schema} from "mongoose";
 import {LearningLanguageEnum} from "../../common/enum/user.enum.js";
-
-const weakPhonemeErrorsSchema = new mongoose.Schema(
-  {
-    phoneme: {
-      type: String,
-      required: true,
-    },
-    errorCount: {
-      type: Number,
-      default: 0,
-      min: 0,
-    },
-  },
-  {
-    _id: 0,
-  },
-);
-
 const progressSchema = new mongoose.Schema(
   {
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
-      index: true,
       unique: true,
     },
-    language: {
-      type: String,
-      enum: [LearningLanguageEnum.english, LearningLanguageEnum.arabic],
-      default: LearningLanguageEnum.english,
+
+    points: {
+      type: Number,
+      default: 0,
+      min: 0,
     },
     overall: {
-      avgScore: {
-        type: Number,
-        min: 0,
-        max: 100,
-        default: null,
-      },
-      bestScore: {
-        type: Number,
-        min: 0,
-        max: 100,
-        default: null,
-      },
-      totalAttempts: {
-        type: Number,
-        default: 0,
-        min: 0,
-      },
+      avgScore: {type: Number, min: 0, max: 100, default: null},
+      bestScore: {type: Number, min: 0, max: 100, default: null},
+      totalAttempts: {type: Number, default: 0, min: 0},
+      correctCount: {type: Number, default: 0, min: 0},
     },
-    weakPhonemes: {
-      type: [weakPhonemeErrorsSchema],
-      default: [],
+
+    lastAttemptAt: {
+      type: Date,
+      default: null,
     },
   },
   {
     timestamps: true,
     strict: true,
     optimisticConcurrency: true,
-    toJSON: {virtuals: true},
-    toObject: {virtuals: true},
   },
 );
+
+progressSchema.index({userId: 1, points: 1, lastAttemptAt: 1});
 
 const progressModel =
   mongoose.models.Progress || mongoose.model("Progress", progressSchema);
