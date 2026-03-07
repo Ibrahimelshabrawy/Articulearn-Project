@@ -1,94 +1,102 @@
 import joi from "joi";
-import {
-  DifficultyLevelEnum,
-  LearningLanguageEnum,
-} from "../../common/enum/user.enum.js";
 import {TypeEnum} from "../../common/enum/exercise.enum.js";
+import {ExerciseRules} from "../../common/utils/helpers/rules.validation.js";
+import {objectId} from "../../common/utils/helpers/objectId.validationHelper.js";
+
+const baseExercise = {
+  level: ExerciseRules.level,
+  type: ExerciseRules.type.required(),
+  language: ExerciseRules.language,
+  isActive: ExerciseRules.isActive,
+  title: ExerciseRules.title.required(),
+
+  // pronunciation
+  promptText: ExerciseRules.promptText,
+  referenceAudioUrl: ExerciseRules.referenceAudioUrl,
+
+  // sentence_builder
+  gameAudioUrl: ExerciseRules.gameAudioUrl,
+  sentenceTemplate: ExerciseRules.sentenceTemplate,
+  options: ExerciseRules.options,
+  correctAnswer: ExerciseRules.correctAnswer,
+};
 
 export const createExerciseSchema = {
   body: joi
-    .object({
-      type: joi
-        .string()
-        .valid(TypeEnum.pronunciation, TypeEnum.sentence_builder)
-        .required(),
-      level: joi
-        .string()
-        .valid(
-          DifficultyLevelEnum.advanced,
-          DifficultyLevelEnum.intermediate,
-          DifficultyLevelEnum.beginner,
-        )
-        .default(DifficultyLevelEnum.beginner),
-      language: joi
-        .string()
-        .valid(LearningLanguageEnum.arabic, LearningLanguageEnum.english)
-        .default(LearningLanguageEnum.english),
-      title: joi.string().trim().min(3).max(150).required(),
-      promptText: joi.string().trim().min(1).max(500).required(),
-      audioReferenceUrl: joi.string().trim().uri().allow(null),
-      tips: joi.array().items(joi.string().trim().min(2).max(200)).default([]),
-      tags: joi.array().items(joi.string().trim().min(1).max(50)),
-      isActiveExercise: joi.boolean(),
+    .object(baseExercise)
+    .custom((value, helpers) => {
+      if (value.type === TypeEnum.pronunciation) {
+        if (!value.promptText)
+          return helpers.message("promptText is required for pronunciation");
+      }
+
+      if (value.type === TypeEnum.sentence_builder) {
+        if (!value.gameAudioUrl)
+          return helpers.message(
+            "gameAudioUrl is required for sentence_builder",
+          );
+        if (!value.sentenceTemplate)
+          return helpers.message(
+            "sentenceTemplate is required for sentence_builder",
+          );
+        if (!value.options || value.options.length < 2)
+          return helpers.message("options must contain at least 2 items");
+        if (!value.correctAnswer)
+          return helpers.message(
+            "correctAnswer is required for sentence_builder",
+          );
+        if (!value.options.includes(value.correctAnswer))
+          return helpers.message("correctAnswer must be one of options");
+      }
+      return value;
     })
-    .required(),
+    .required()
+    .messages({
+      "any.required": "Form Is Required",
+    })
+    .unknown(false),
 };
 
 export const updateExerciseSchema = {
+  params: objectId.id.required(),
   body: joi
     .object({
-      type: joi
-        .string()
-        .valid(TypeEnum.pronunciation, TypeEnum.sentence_builder),
-      level: joi
-        .string()
-        .valid(
-          DifficultyLevelEnum.advanced,
-          DifficultyLevelEnum.intermediate,
-          DifficultyLevelEnum.beginner,
-        )
-        .default(DifficultyLevelEnum.beginner),
-      language: joi
-        .string()
-        .valid(LearningLanguageEnum.arabic, LearningLanguageEnum.english)
-        .default(LearningLanguageEnum.english),
-      title: joi.string().trim().min(3).max(150),
-      promptText: joi.string().trim().min(1).max(500),
-      audioReferenceUrl: joi.string().trim().uri().allow(null),
-      tips: joi.array().items(joi.string().trim().min(2).max(200)).default([]),
-      tags: joi.array().items(joi.string().trim().min(1).max(50)),
-      isActiveExercise: joi.boolean().default(true),
+      type: ExerciseRules.type,
+      level: ExerciseRules.level,
+      language: ExerciseRules.language,
+      title: ExerciseRules.title,
+      isActive: ExerciseRules.isActive,
+
+      // pronunciation
+      promptText: ExerciseRules.promptText,
+      referenceAudioUrl: ExerciseRules.referenceAudioUrl,
+
+      // sentence_builder
+      gameAudioUrl: ExerciseRules.gameAudioUrl,
+      sentenceTemplate: ExerciseRules.sentenceTemplate,
+      options: ExerciseRules.options,
+      correctAnswer: ExerciseRules.correctAnswer,
     })
-    .min(1),
+    .min(1)
+    .unknown(false),
 };
 
-export const listExerciseQuerySchema = {
-  query: joi.object({
-    type: joi
-      .string()
-      .valid(TypeEnum.pronunciation, TypeEnum.sentence_builder)
-      .required(),
-    level: joi
-      .string()
-      .valid(
-        DifficultyLevelEnum.advanced,
-        DifficultyLevelEnum.intermediate,
-        DifficultyLevelEnum.beginner,
-      )
-      .default(DifficultyLevelEnum.beginner),
-    language: joi
-      .string()
-      .valid(LearningLanguageEnum.arabic, LearningLanguageEnum.english)
-      .default(LearningLanguageEnum.english),
-    isActiveExercise: joi.boolean(),
-    search: joi.string().trim().min(1).max(80),
-    page: joi.number().integer().min(1).default(1),
-    limit: joi.number().min(1).max(50).default(10),
-  }),
+export const listExercisesSchema = {
+  query: joi
+    .object({
+      type: ExerciseRules.type.required(),
+      language: ExerciseRules.language,
+      isActive: ExerciseRules.isActive,
+      page: ExerciseRules.page,
+      size: ExerciseRules.size,
+    })
+    .unknown(false),
 };
 
-export const idParamSchema = {
-  params: joi.object({
-    id: joi.string().hex().length(24).required(),
-  }),
+export const deactivateOrActivateExcerciseSchema = {
+  params: objectId.id.required(),
+};
+
+export const getExerciseByIDSchema = {
+  params: objectId.id.required(),
 };

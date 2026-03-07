@@ -8,6 +8,7 @@ import * as EV from "./exercise.validation.js";
 
 const exerciseRoutes = Router();
 
+// Create Exercise
 exerciseRoutes.post(
   "/",
   authentication,
@@ -15,12 +16,24 @@ exerciseRoutes.post(
   validation(EV.createExerciseSchema),
   ES.createExercise,
 );
+
+// Fetch All Exercises Based On Level
 exerciseRoutes.get(
   "/",
-  validation(EV.listExerciseQuerySchema),
+  authentication,
+  validation(EV.listExercisesSchema),
   ES.listExercises,
 );
-exerciseRoutes.get("/:id", validation(EV.idParamSchema), ES.getExerciseById);
+
+// Fetch Exercise By ID
+exerciseRoutes.get(
+  "/:id",
+  authentication,
+  validation(EV.getExerciseByIDSchema),
+  ES.getExerciseByID,
+);
+
+// Update Exercise
 exerciseRoutes.patch(
   "/:id",
   authentication,
@@ -29,19 +42,21 @@ exerciseRoutes.patch(
   ES.updateExercise,
 );
 
+// Deactivate Exercise
 exerciseRoutes.patch(
   "/deactivate/:id",
   authentication,
   authorization([RoleEnum.admin]),
-  validation(EV.idParamSchema, EV.updateExerciseSchema),
+  validation(EV.deactivateOrActivateExcerciseSchema),
   ES.deactivateExcercise,
 );
 
+// Activate Exercise
 exerciseRoutes.patch(
   "/activate/:id",
   authentication,
   authorization([RoleEnum.admin]),
-  validation(EV.idParamSchema, EV.updateExerciseSchema),
+  validation(EV.deactivateOrActivateExcerciseSchema),
   ES.activateExcercise,
 );
 
@@ -49,6 +64,3 @@ export default exerciseRoutes;
 
 // list
 // GET http://localhost:3000/exercises?page=1&size=10
-
-// search
-// GET http://localhost:3000/exercises?search=ship&page=1&size=10

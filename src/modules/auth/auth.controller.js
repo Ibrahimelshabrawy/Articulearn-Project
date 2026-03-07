@@ -6,5 +6,5 @@ const authRouter = Router();
 
 authRouter.post("/signup", validation(AV.signUpSchema), AS.signUp);
 authRouter.post("/signup/gmail", AS.signUpWithGmail);
-authRouter.post("/signin", AS.signIn);
+authRouter.post("/signin", validation(AV.signInSchema), AS.signIn);
 export default authRouter;

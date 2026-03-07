@@ -16,10 +16,9 @@ const attemptSchema = new mongoose.Schema(
       index: true,
     },
 
-    // مهم عشان يخدم النوعين
     type: {
       type: String,
-      enum: [TypeEnum.pronunciation, TypeEnum.sentence_builder],
+      enum: Object.values(TypeEnum),
       required: true,
       index: true,
     },
@@ -28,6 +27,17 @@ const attemptSchema = new mongoose.Schema(
     audioUrl: {type: String, default: null},
     durationMs: {type: Number, default: null},
     referenceText: {type: String, default: null}, // snapshot من Exercise.promptText
+    targetWord: {
+      type: String,
+      default: null,
+      trim: true,
+    },
+    // الكلمة اللي اليوزر نطقها فعليا
+    recognizedText: {
+      type: String,
+      default: null,
+      trim: true,
+    },
 
     // ====== Game submission ======
     selectedAnswer: {type: String, default: null},
@@ -35,11 +45,7 @@ const attemptSchema = new mongoose.Schema(
     // ====== Result ======
     status: {
       type: String,
-      enum: [
-        ResultStatsEnum.pending,
-        ResultStatsEnum.success,
-        ResultStatsEnum.failed,
-      ],
+      enum: Object.values(ResultStatsEnum),
       default: ResultStatsEnum.pending,
       index: true,
     },

@@ -106,8 +106,6 @@ export const signIn = async (req, res, next) => {
     options: {lean: true},
   });
 
-  console.log(user);
-
   if (!user) {
     throw new Error("User Not Found", {cause: 404});
   }

@@ -1,9 +1,12 @@
 import joi from "joi";
+import {objectId} from "../../utils/validation/objectId.validation.js";
 
-export const userIdParamsSchema = {
+export const childIdParamSchema = {
   params: joi
     .object({
-      userId: joi.string().hex().length(24).required(),
+      childId: objectId.required(),
     })
-    .required(),
+    .required()
+    .message("Form Is Required")
+    .unknown(false),
 };

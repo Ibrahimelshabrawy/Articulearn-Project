@@ -56,22 +56,18 @@ const userSchema = new mongoose.Schema(
     },
     language: {
       type: String,
-      enum: [LearningLanguageEnum.english, LearningLanguageEnum.arabic],
+      enum: Object.values(LearningLanguageEnum),
       default: LearningLanguageEnum.english,
     },
     level: {
       type: String,
-      enum: [
-        DifficultyLevelEnum.beginner,
-        DifficultyLevelEnum.intermediate,
-        DifficultyLevelEnum.advanced,
-      ],
+      enum: Object.values(DifficultyLevelEnum),
       default: DifficultyLevelEnum.beginner,
     },
 
     gender: {
       type: String,
-      enum: [GenderEnum.male, GenderEnum.female],
+      enum: Object.values(GenderEnum),
       default: GenderEnum.male,
     },
     age: {
@@ -80,16 +76,14 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: [RoleEnum.parent, RoleEnum.user, RoleEnum.admin],
+      enum: Object.values(RoleEnum),
       default: RoleEnum.user,
       index: true,
     },
 
     parentLinkCode: {
       type: String,
-      default: null,
-      unique: true,
-      index: true,
+      default: undefined,
     },
 
     // ✅ Parent link (only for child accounts)
@@ -108,7 +102,7 @@ const userSchema = new mongoose.Schema(
 );
 userSchema.index(
   {parentLinkCode: 1},
-  {unique: true, partialFilterExpression: {parentLinkCode: {$type: "string"}}},
+  {partialFilterExpression: {parentLinkCode: {$type: "string"}}},
 );
 
 const userModel = mongoose.models.User || mongoose.model("User", userSchema);

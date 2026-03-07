@@ -1,34 +1,52 @@
 import joi from "joi";
-import {ResultStatsEnum} from "../../common/enum/attempt.enum.js";
+import {objectId} from "../../utils/validation/objectId.validation.js";
+import {TypeEnum} from "../../common/enum/exercise.enum.js";
 
-export const createAttemptBodySchema = {
-  body: joi
-    .object({
-      exerciseId: joi.string().hex().length(24).required(),
-      durationMs: joi.number().integer().min(100).max(),
-    })
-    .required(),
-};
+export const createAttemptSchema = joi
+  .object({
+    exerciseId: objectId.required(),
 
-export const attemptIdParamsSchema = {
-  params: joi
-    .object({
-      id: joi.string().hex().length(24).required(),
-    })
-    .required(),
-};
-export const listAttemptsQuerySchema = {
-  query: joi.object({
-    exerciseId: joi.string().hex().length(24).required(),
-    status: joi
+    type: joi
       .string()
-      .valid(
-        ResultStatsEnum.failed,
-        ResultStatsEnum.pending,
-        ResultStatsEnum.success,
-      )
-      .default(ResultStatsEnum.pending),
+      .valid(TypeEnum.pronunciation, TypeEnum.sentence_builder)
+      .required(),
+
+    // pronunciation submission
+    audioUrl: joi.string().uri().allow(null),
+    durationMs: joi.number().integer().min(0).allow(null),
+
+    // sentence_builder submission
+    selectedAnswer: joi.string().trim().min(1).allow(null),
+  })
+  .custom((value, helpers) => {
+    if (value.type === TypeEnum.pronunciation) {
+      if (!value.audioUrl)
+        return helpers.error("any.custom", {
+          message: "audioUrl is required for pronunciation attempt",
+        });
+    }
+
+    if (value.type === TypeEnum.sentence_builder) {
+      if (!value.selectedAnswer)
+        return helpers.error("any.custom", {
+          message: "selectedAnswer is required for sentence_builder attempt",
+        });
+    }
+
+    return value;
+  })
+  .required()
+  .messages({"any.custom": "Form Is Required"})
+  .unknown(false);
+
+export const listAttemptsQuerySchema = joi
+  .object({
+    exerciseId: objectId,
+    type: joi
+      .string()
+      .valid(TypeEnum.pronunciation, TypeEnum.sentence_builder)
+      .required(),
     page: joi.number().integer().min(1).default(1),
-    limit: joi.number().min(1).max(50).default(10),
-  }),
-};
+    size: joi.number().integer().min(1).max(50).default(10),
+  })
+  .unknown(false);

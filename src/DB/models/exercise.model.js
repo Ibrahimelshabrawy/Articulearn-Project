@@ -8,23 +8,19 @@ const exerciseSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      enum: [TypeEnum.pronunciation, TypeEnum.sentence_builder],
+      enum: Object.values(TypeEnum),
       required: true,
     },
 
     level: {
       type: String,
-      enum: [
-        DifficultyLevelEnum.beginner,
-        DifficultyLevelEnum.intermediate,
-        DifficultyLevelEnum.advanced,
-      ],
+      enum: Object.values(DifficultyLevelEnum),
       required: true,
     },
 
     language: {
       type: String,
-      enum: [LearningLanguageEnum.arabic, LearningLanguageEnum.english],
+      enum: Object.values(LearningLanguageEnum),
       default: LearningLanguageEnum.english,
     },
 
@@ -61,7 +57,7 @@ const exerciseSchema = new mongoose.Schema(
     },
 
     // الاختيارات اللي هيختار منها الكلمة الناقصة
-    choices: {
+    options: {
       type: [String],
       default: [],
     },
