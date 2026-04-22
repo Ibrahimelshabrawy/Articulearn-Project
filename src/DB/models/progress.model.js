@@ -1,5 +1,4 @@
 import mongoose, {Schema} from "mongoose";
-import {LearningLanguageEnum} from "../../common/enum/user.enum.js";
 const progressSchema = new mongoose.Schema(
   {
     userId: {
@@ -7,6 +6,7 @@ const progressSchema = new mongoose.Schema(
       ref: "User",
       required: true,
       unique: true,
+      index: true,
     },
 
     points: {
@@ -32,8 +32,6 @@ const progressSchema = new mongoose.Schema(
     optimisticConcurrency: true,
   },
 );
-
-progressSchema.index({userId: 1, points: 1, lastAttemptAt: 1});
 
 const progressModel =
   mongoose.models.Progress || mongoose.model("Progress", progressSchema);

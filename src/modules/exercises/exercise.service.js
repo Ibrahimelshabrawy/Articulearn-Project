@@ -1,96 +1,204 @@
+import cloudinary from "../../../../Bookify App/src/common/utils/cloudinary/cloudinary.js";
 import {TypeEnum} from "../../common/enum/exercise.enum.js";
 import {DifficultyLevelEnum, RoleEnum} from "../../common/enum/user.enum.js";
 import {successResponse} from "../../common/utils/response/success.response.js";
 import * as db_services from "../../DB/db.services.js";
 import exerciseModel from "../../DB/models/exercise.model.js";
 
-export const createExercise = async (req, res, next) => {
-  const {
-    type,
-    level,
-    language,
-    title,
+export const createPronunciationExercise = async (req, res, next) => {
+  let {level, language, title, promptText, referenceAudioUrl, isActive} =
+    req.body;
 
-    // pronunciation
-    promptText,
-    referenceAudioUrl,
+  referenceAudioUrl = await cloudinary.uploader.upload(req.file.path, {
+    folder: "Articulearn/Pronunciation/referenceAudioUrl",
+    resource_type: "video",
+  });
 
-    // sentence_builder
-    gameAudioUrl,
-    sentenceTemplate,
-    options,
-    correctAnswer,
-
-    isActive,
-  } = req.body;
+  referenceAudioUrl = {
+    secure_url: referenceAudioUrl.secure_url,
+    public_id: referenceAudioUrl.public_id,
+  };
 
   const exercise = await db_services.create({
     model: exerciseModel,
     data: {
-      type,
-      level,
-      language,
-      title,
-
-      // pronunciation
-      promptText: promptText ?? null,
-      referenceAudioUrl: referenceAudioUrl ?? null,
-
-      // sentence_builder
-      gameAudioUrl: gameAudioUrl ?? null,
-      sentenceTemplate: sentenceTemplate ?? null,
-      options: options ?? [],
-      correctAnswer: correctAnswer ?? null,
-
-      isActive: isActive ?? true,
-    },
-  });
-  successResponse({
-    res,
-    status: 201,
-    message: "Created Exercise Successfully 🥳🥳",
-    data: exercise,
-  });
-};
-
-export const updateExercise = async (req, res, next) => {
-  const {id} = req.params;
-
-  const {
-    type,
-    level,
-    language,
-    title,
-    promptText,
-    referenceAudioUrl,
-    gameAudioUrl,
-    sentenceTemplate,
-    options,
-    correctAnswer,
-    isActive,
-  } = req.body;
-
-  const exercise = await db_services.findOneAndUpdate({
-    model: exerciseModel,
-    filter: {_id: id},
-    update: {
-      type,
+      type: TypeEnum.pronunciation,
       level,
       language,
       title,
       promptText,
       referenceAudioUrl,
+      gameAudioUrl: null,
+      sentenceTemplate: null,
+      options: [],
+      correctAnswer: null,
+      isActive: isActive ?? true,
+    },
+  });
+
+  successResponse({
+    res,
+    status: 201,
+    message: "Pronunciation Exercise Created Successfully 🎤",
+    data: exercise,
+  });
+};
+
+export const createSentenceBuilderExercise = async (req, res, next) => {
+  let {
+    level,
+    language,
+    title,
+    gameAudioUrl,
+    sentenceTemplate,
+    options,
+    correctAnswer,
+    isActive,
+  } = req.body;
+
+  options = options ? options.split(",").map((item) => item.trim()) : [];
+
+  gameAudioUrl = await cloudinary.uploader.upload(req.file.path, {
+    folder: "Articulearn/SentenceBuilder/GameAudioUrl",
+    resource_type: "video",
+  });
+
+  gameAudioUrl = {
+    secure_url: gameAudioUrl.secure_url,
+    public_id: gameAudioUrl.secure_url,
+  };
+
+  const exercise = await db_services.create({
+    model: exerciseModel,
+    data: {
+      type: TypeEnum.sentence_builder,
+      level,
+      language,
+      title,
+      promptText: null,
+      referenceAudioUrl: null,
       gameAudioUrl,
+      sentenceTemplate,
+      options,
+      correctAnswer,
+      isActive: isActive ?? true,
+    },
+  });
+
+  successResponse({
+    res,
+    status: 201,
+    message: "Sentence Builder Exercise Created Successfully 🧩",
+    data: exercise,
+  });
+};
+
+export const updateExerciseForPronunciation = async (req, res, next) => {
+  const {id} = req.params;
+
+  let {level, language, title, promptText, referenceAudioUrl, isActive} =
+    req.body;
+
+  const findExercise = await db_services.findById({
+    model: exerciseModel,
+    id,
+  });
+  if (!findExercise) {
+    throw new Error("Exercise Not Found😥❗", {cause: 404});
+  }
+
+  if (req.file) {
+    if (findExercise.referenceAudioUrl.public_id) {
+      await cloudinary.uploader.destroy(
+        findExercise.referenceAudioUrl.public_id,
+        {resource_type: "video"},
+      );
+    }
+  }
+
+  let refAudioUrl = await cloudinary.uploader.upload(req.file.path, {
+    folder: "Articulearn/Pronunciation/referenceAudioUrl",
+    resource_type: "video",
+  });
+  findExercise.referenceAudioUrl = {
+    secure_url: refAudioUrl.secure_url,
+    public_id: refAudioUrl.public_id,
+  };
+
+  const exercise = await db_services.findOneAndUpdate({
+    model: exerciseModel,
+    filter: {_id: id},
+    update: {
+      level,
+      language,
+      title,
+      promptText,
+      referenceAudioUrl: findExercise.referenceAudioUrl,
+      isActive,
+    },
+  });
+
+  successResponse({
+    res,
+    status: 200,
+    message: "Exercise Updated Successfully 🥳🥳",
+    data: exercise,
+  });
+};
+
+export const updateExerciseForSentence = async (req, res, next) => {
+  const {id} = req.params;
+
+  let {
+    level,
+    language,
+    title,
+    gameAudioUrl,
+    sentenceTemplate,
+    options,
+    correctAnswer,
+    isActive,
+  } = req.body;
+
+  const findExercise = await db_services.findById({
+    model: exerciseModel,
+    id,
+  });
+  if (!findExercise) {
+    throw new Error("Exercise Not Found😥❗", {cause: 404});
+  }
+
+  if (req.file) {
+    if (findExercise.gameAudioUrl.public_id) {
+      await cloudinary.uploader.destroy(findExercise.gameAudioUrl.public_id, {
+        resource_type: "video",
+      });
+    }
+  }
+
+  let gameAudioUri = await cloudinary.uploader.upload(req.file.path, {
+    folder: "Articulearn/SentenceBuilder/GameAudioUrl",
+    resource_type: "video",
+  });
+  findExercise.gameAudioUrl = {
+    secure_url: gameAudioUri.secure_url,
+    public_id: gameAudioUri.public_id,
+  };
+
+  const exercise = await db_services.findOneAndUpdate({
+    model: exerciseModel,
+    filter: {_id: id},
+    update: {
+      level,
+      language,
+      title,
+      gameAudioUrl: findExercise.gameAudioUrl,
       sentenceTemplate,
       options,
       correctAnswer,
       isActive,
     },
   });
-
-  if (!exercise) {
-    throw new Error("Exercise Not Found😥❗", {cause: 404});
-  }
 
   successResponse({
     res,
@@ -141,33 +249,14 @@ export const activateExcercise = async (req, res, next) => {
   });
 };
 
-export const listExercises = async (req, res, next) => {
-  const {type, language, isActive, page = 1, size = 10} = req.query;
-  const filter = {};
+export const getExercisesByTypeAndLevel = async (req, res, next) => {
+  const {type, level} = req.params;
+  const {page = 1, size = 10} = req.query;
 
-  if (type) filter.type = type;
-  if (language) filter.language = language;
+  const filter = {type, level};
 
-  // الطالب يشوف active بس
-  if (req.user.role !== "admin") {
+  if (req.user.role !== RoleEnum.admin) {
     filter.isActive = true;
-  } else if (isActive !== undefined) {
-    filter.isActive = isActive === "true";
-  }
-
-  // level filtering based on user's difficulty level
-  if (req.user.role !== "admin") {
-    const userLevel = req.user?.level;
-
-    if (userLevel === DifficultyLevelEnum.beginner) {
-      filter.level = DifficultyLevelEnum.beginner;
-    } else if (userLevel === DifficultyLevelEnum.intermediate) {
-      filter.level = {
-        $in: [DifficultyLevelEnum.beginner, DifficultyLevelEnum.intermediate],
-      };
-    } else if (userLevel === DifficultyLevelEnum.advanced) {
-      filter.level = {$in: Object.values(DifficultyLevelEnum)};
-    }
   }
 
   const data = await db_services.paginate({
@@ -184,7 +273,7 @@ export const listExercises = async (req, res, next) => {
   successResponse({
     res,
     status: 200,
-    message: "Exercises Fetched Successfully 🥳🥳",
+    message: "Exercises fetched successfully 📚",
     data,
   });
 };

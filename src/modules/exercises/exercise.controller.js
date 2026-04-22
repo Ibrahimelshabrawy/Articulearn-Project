@@ -1,28 +1,43 @@
 import {Router} from "express";
 import * as ES from "./exercise.service.js";
+import * as EV from "./exercise.validation.js";
+import * as AV from "../attempts/attempt.validation.js";
+import * as AS from "../attempts/attempt.service.js";
 import {authentication} from "../../common/middleware/Auth/authentication.middleware.js";
 import {authorization} from "../../common/middleware/Auth/authorization.middleware.js";
 import {RoleEnum} from "../../common/enum/user.enum.js";
 import validation from "../../common/middleware/Validation/validation.middleware.js";
-import * as EV from "./exercise.validation.js";
-
+import attemptRoute from "../attempts/attempt.controller.js";
+import multer_host from "../../common/middleware/multer/multer.js";
+import {MulterEnum} from "../../common/enum/multer.enum.js";
 const exerciseRoutes = Router();
 
-// Create Exercise
+// Create Exercise Pronunciation
 exerciseRoutes.post(
-  "/",
+  "/create-pronunciation",
   authentication,
   authorization([RoleEnum.admin]),
-  validation(EV.createExerciseSchema),
-  ES.createExercise,
+  multer_host([...MulterEnum.audio]).single("referenceAudioUrl"),
+  validation(EV.createPronunciationExerciseSchema),
+  ES.createPronunciationExercise,
 );
 
-// Fetch All Exercises Based On Level
-exerciseRoutes.get(
-  "/",
+// Create Exercise Sentence
+exerciseRoutes.post(
+  "/create-sentence",
   authentication,
-  validation(EV.listExercisesSchema),
-  ES.listExercises,
+  authorization([RoleEnum.admin]),
+  multer_host([...MulterEnum.audio]).single("gameAudioUrl"),
+  validation(EV.createSentenceBuilderExerciseSchema),
+  ES.createSentenceBuilderExercise,
+);
+
+// Fetch All Exercises Based On Level And Type
+exerciseRoutes.get(
+  "/:type/:level",
+  authentication,
+  validation(EV.getExercisesByTypeAndLevelSchema),
+  ES.getExercisesByTypeAndLevel,
 );
 
 // Fetch Exercise By ID
@@ -33,13 +48,24 @@ exerciseRoutes.get(
   ES.getExerciseByID,
 );
 
-// Update Exercise
+// Update Exercise pronunciation
 exerciseRoutes.patch(
-  "/:id",
+  "/update-pronunciation/:id",
   authentication,
   authorization([RoleEnum.admin]),
-  validation(EV.updateExerciseSchema),
-  ES.updateExercise,
+  multer_host([...MulterEnum.audio]).single("referenceAudioUrl"),
+  validation(EV.updatePronunciationExerciseSchema),
+  ES.updateExerciseForPronunciation,
+);
+
+// Update Exercise Sentence
+exerciseRoutes.patch(
+  "/update-sentence/:id",
+  authentication,
+  authorization([RoleEnum.admin]),
+  multer_host([...MulterEnum.audio]).single("gameAudioUrl"),
+  validation(EV.updateSentenceBuilderExerciseSchema),
+  ES.updateExerciseForSentence,
 );
 
 // Deactivate Exercise
@@ -59,6 +85,9 @@ exerciseRoutes.patch(
   validation(EV.deactivateOrActivateExcerciseSchema),
   ES.activateExcercise,
 );
+
+// Attempt Sentence Builder Exercise
+exerciseRoutes.use("/:exerciseId/attempt", attemptRoute);
 
 export default exerciseRoutes;
 

@@ -34,13 +34,26 @@ export const ExerciseRules = {
 
   // pronunciation
   promptText: joi.string().trim().min(1).allow(null),
-  referenceAudioUrl: joi.string().uri().allow(null),
 
   // sentence_builder
-  gameAudioUrl: joi.string().uri().allow(null),
   sentenceTemplate: joi.string().trim().min(1).allow(null),
-  options: joi.array().items(joi.string().trim().min(1)).default([]),
+  options: joi.string(),
   correctAnswer: joi.string().trim().min(1).allow(null),
+
+  file: joi
+    .object({
+      fieldname: joi.string(),
+      originalname: joi.string(),
+      encoding: joi.string(),
+      mimetype: joi.string(),
+      destination: joi.string(),
+      filename: joi.string(),
+      path: joi.string(),
+      size: joi.number(),
+    })
+    .messages({
+      "any.required": "File is required",
+    }),
 };
 
 export const providerRules = {
@@ -55,7 +68,7 @@ export const providerRules = {
   }),
 };
 
-export const authRules = {
+export const AuthRules = {
   firstName: joi.string().min(2).max(30).trim().messages({
     "any.required": "First Name is required",
     "string.min": "firstName length must be at least 2 characters",
@@ -134,4 +147,10 @@ export const authRules = {
       "string.pattern.base": "parentCode must be exactly 6 digits",
     }),
   parentId: joi.string().hex().length(24).allow(null),
+};
+
+export const AttemptRules = {
+  durationMs: joi.number().integer().min(0),
+  // sentence_builder submission
+  selectedAnswer: joi.string().trim().min(1),
 };

@@ -1,6 +1,6 @@
 import joi from "joi";
 import {
-  authRules,
+  AuthRules,
   ExerciseRules,
 } from "../../common/utils/helpers/rules.validation.js";
 import {objectId} from "../../common/utils/helpers/objectId.validationHelper.js";
@@ -8,17 +8,17 @@ import {objectId} from "../../common/utils/helpers/objectId.validationHelper.js"
 export const signUpSchema = {
   body: joi
     .object({
-      firstName: authRules.firstName.required(),
-      lastName: authRules.lastName.required(),
-      phone: authRules.phone,
-      providers: authRules.providers,
-      email: authRules.email,
-      password: authRules.password,
-      cPassword: authRules.cPassword,
-      gender: authRules.gender,
-      age: authRules.age,
-      role: authRules.role,
-      parentCode: authRules.parentCode,
+      firstName: AuthRules.firstName.required(),
+      lastName: AuthRules.lastName.required(),
+      phone: AuthRules.phone,
+      providers: AuthRules.providers,
+      email: AuthRules.email,
+      password: AuthRules.password,
+      cPassword: AuthRules.cPassword,
+      gender: AuthRules.gender,
+      age: AuthRules.age,
+      role: AuthRules.role,
+      parentCode: AuthRules.parentCode,
       language: ExerciseRules.language,
       level: ExerciseRules.level,
       parentId: objectId.id,
@@ -33,8 +33,8 @@ export const signUpSchema = {
 export const signInSchema = {
   body: joi
     .object({
-      email: authRules.email.required(),
-      password: authRules.password.required(),
+      email: AuthRules.email.required(),
+      password: AuthRules.password.required(),
     })
     .required()
     .messages({

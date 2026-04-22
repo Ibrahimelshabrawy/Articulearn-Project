@@ -10,9 +10,15 @@ import {encrypt} from "../../common/utils/Security/encryption.security.js";
 import {GenerateToken} from "../../common/utils/jwt/token.service.js";
 
 import {OAuth2Client} from "google-auth-library";
-import {SALT_ROUND, SECRET_KEY} from "../../../config/config.service.js";
+import {
+  ACCESS_SECRET_KEY_ADMIN,
+  ACCESS_SECRET_KEY_USER,
+  SALT_ROUND,
+  WEB_CLIENT_ID,
+} from "../../../config/config.service.js";
 import {resolveParentIdByCode} from "./auth.helper.js";
 import {generateUniqueParentCode} from "../../common/utils/helpers/parentCode.helper.js";
+import * as redis_service from "../../DB/redis/redis.services.js";
 
 export const signUp = async (req, res, next) => {
   const {
@@ -118,7 +124,10 @@ export const signIn = async (req, res, next) => {
 
   const access_token = GenerateToken({
     payload: {id: user._id},
-    secret_key: SECRET_KEY,
+    secret_key:
+      user.role == RoleEnum.admin
+        ? ACCESS_SECRET_KEY_ADMIN
+        : ACCESS_SECRET_KEY_USER,
   });
 
   successResponse({
@@ -134,8 +143,7 @@ export const signUpWithGmail = async (req, res, next) => {
   const client = new OAuth2Client();
   const ticket = await client.verifyIdToken({
     idToken,
-    audience:
-      "694984628962-f9voepvf2qrj0abb03epi4uln12stb08.apps.googleusercontent.com",
+    audience: WEB_CLIENT_ID,
   });
   const payload = ticket.getPayload();
 
@@ -178,4 +186,30 @@ export const signUpWithGmail = async (req, res, next) => {
     status: 200,
     data: {access_token},
   });
+};
+
+export const logout = async (req, res, next) => {
+  const {flag} = req.query;
+  switch (flag) {
+    case LogoutEnum.all:
+      req.user.changeCredential = new Date();
+      await req.user.save();
+
+      // Delete From Cache
+      await redis_service.deleteKey(
+        redis_service.keys(redis_service.getKeyUserId({userId: req.user._id})),
+      );
+      break;
+    default:
+      await redis_service.set({
+        key: redis_service.revokeKey({
+          userId: req.user._id,
+          jti: req.verify.jti,
+        }),
+        value: `${req.verify.jti}`,
+        ttl: req.verify.exp - Math.floor(Date.now() / 1000),
+      });
+      break;
+  }
+  successResponse({res});
 };

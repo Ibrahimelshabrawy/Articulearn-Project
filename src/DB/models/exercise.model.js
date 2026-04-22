@@ -39,17 +39,18 @@ const exerciseSchema = new mongoose.Schema(
 
     // الريكورد اللي هيمسعه عشان ينطق شبهه ك وسيلة مساعده انه يسمع النطق الصح
     referenceAudioUrl: {
-      type: String,
-      default: null,
+      secure_url: {type: String, default: null},
+      public_id: {type: String, default: null},
+      _id: false,
     },
 
-    // ====== LISTENING GAME ======
+    // ====== Sentence Builder GAME ======
     // الريكورد اللي هيسمعه عشان يكمل الجملة الناقصة
     gameAudioUrl: {
-      type: String,
-      default: null,
+      secure_url: {type: String, default: null},
+      public_id: {type: String, default: null},
+      _id: false,
     },
-
     sentenceTemplate: {
       // Example: "I ___ to school yesterday."
       type: String,

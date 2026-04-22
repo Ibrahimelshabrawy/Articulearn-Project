@@ -24,7 +24,11 @@ const attemptSchema = new mongoose.Schema(
     },
 
     // ====== Pronunciation submission ======
-    audioUrl: {type: String, default: null},
+    audioUrl: {
+      secure_url: {type: String, default: null},
+      public_id: {type: String, default: null},
+      _id: false,
+    },
     durationMs: {type: Number, default: null},
     referenceText: {type: String, default: null}, // snapshot من Exercise.promptText
     targetWord: {
@@ -64,26 +68,25 @@ const attemptSchema = new mongoose.Schema(
 );
 
 // validation حسب النوع
-attemptSchema.pre("validate", function (next) {
+attemptSchema.pre("validate", function () {
   if (this.type === TypeEnum.pronunciation) {
-    if (!this.audioUrl)
-      return next(new Error("audioUrl is required for pronunciation attempt."));
-    if (!this.referenceText)
-      return next(
-        new Error("referenceText is required for pronunciation attempt."),
-      );
+    if (!this.audioUrl) {
+      throw new Error("audioUrl is required for pronunciation attempt.");
+    }
+
+    if (!this.referenceText) {
+      throw new Error("referenceText is required for pronunciation attempt.");
+    }
   }
 
   if (this.type === TypeEnum.sentence_builder) {
-    if (!this.selectedAnswer)
-      return next(
-        new Error("selectedAnswer is required for listening_game attempt."),
+    if (!this.selectedAnswer) {
+      throw new Error(
+        "selectedAnswer is required for sentence builder attempt.",
       );
+    }
   }
-
-  next();
 });
-
 attemptSchema.index({userId: 1, createdAt: -1});
 attemptSchema.index({userId: 1, exerciseId: 1, createdAt: -1});
 
