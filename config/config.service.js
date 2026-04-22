@@ -16,12 +16,14 @@ export const REDIS_URI = process.env.REDIS_URI;
 
 export const ACCESS_SECRET_KEY_USER = process.env.ACCESS_SECRET_KEY_USER;
 export const ACCESS_SECRET_KEY_ADMIN = process.env.ACCESS_SECRET_KEY_ADMIN;
-export const REFRESH_SECRET_KEY_USER = process.env.REFRESH_SECRET_KEY_USER;
-export const REFRESH_SECRET_KEY_ADMIN = process.env.REFRESH_SECRET_KEY_ADMIN;
+export const ACCESS_SECRET_KEY_PARENT = process.env.ACCESS_SECRET_KEY_PARENT;
+
 export const ENCRYPT_SECRET_KEY = process.env.ENCRYPT_SECRET_KEY;
 export const PREFIX_USER = process.env.PREFIX_USER;
 export const PREFIX_ADMIN = process.env.PREFIX_ADMIN;
-export const WEB_CLIENT_ID = process.env.WEB_CLIENT_ID;
+export const PREFIX_PARENT = process.env.PREFIX_PARENT;
+
+export const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 
 export const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;

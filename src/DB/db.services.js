@@ -118,3 +118,15 @@ export const paginate = async ({
   const result = await find({model, filter, select, options});
   return {docsCount, limit: options.limit, pages, currentPage, result};
 };
+
+export const countDocuments = async ({model, filter = {}} = {}) => {
+  return await model.countDocuments(filter);
+};
+
+export const deleteOne = async ({filter, model}) => {
+  return await model.deleteOne(filter || {});
+};
+
+export const deleteMany = async ({filter, model}) => {
+  return await model.deleteMany(filter || {});
+};

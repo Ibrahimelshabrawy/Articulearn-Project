@@ -56,18 +56,6 @@ export const ExerciseRules = {
     }),
 };
 
-export const providerRules = {
-  provider: joi
-    .string()
-    .valid(...Object.values(ProviderEnum))
-    .default(ProviderEnum.system),
-  providerId: joi.when("provider", {
-    is: ProviderEnum.google,
-    then: joi.string().required(),
-    otherwise: joi.forbidden(),
-  }),
-};
-
 export const AuthRules = {
   firstName: joi.string().min(2).max(30).trim().messages({
     "any.required": "First Name is required",
@@ -88,47 +76,19 @@ export const AuthRules = {
         "Phone must be a valid Egyptian mobile number , start with (010 , 011 , 012, 015)",
       "string.length": "Phone Number must be in length 11 number",
     }),
-  providers: joi.array().items(providerRules).length(1),
-  email: joi
-    .when("providers", {
-      is: joi
-        .array()
-        .items(
-          joi.object({provider: joi.valid(ProviderEnum.system).required()}),
-        ),
-      then: joi.string().email({minDomainSegments: 2}).required(),
-      otherwise: joi.forbidden(),
-    })
-    .messages({
-      "any.required": "Email is required",
-      "string.email": "Email must be in email format (example@mail.com)",
-    }),
-  password: joi
-    .when("providers", {
-      is: joi
-        .array()
-        .items(
-          joi.object({provider: joi.valid(ProviderEnum.system).required()}),
-        ),
-      then: joi.string().min(6).required(),
-      otherwise: joi.forbidden(),
-    })
-    .messages({
-      "any.required": "Password is required",
-      "string.min": "Password must be greater than 5 chars",
-    }),
-  cPassword: joi
-    .when("providers", {
-      is: joi
-        .array()
-        .items(joi.object({provider: joi.string().valid(ProviderEnum.system)})),
-      then: joi.string().valid(joi.ref("password")).required(),
-      otherwise: joi.forbidden(),
-    })
-    .messages({
-      "any.required": "Confirm Password is required",
-      "any.only": "Confirm password must match password",
-    }),
+  providers: joi.string().valid(...Object.values(ProviderEnum)),
+  email: joi.string().email().messages({
+    "any.required": "Email is required",
+    "string.email": "Email must be in email format (example@mail.com)",
+  }),
+  password: joi.string().required().messages({
+    "any.required": "Password is required",
+    "string.min": "Password must be greater than 5 chars",
+  }),
+  cPassword: joi.string().valid(joi.ref("password")).required().messages({
+    "any.required": "Confirm Password is required",
+    "any.only": "Confirm password must match password",
+  }),
   age: joi.number().min(3).max(100),
   gender: joi
     .string()
@@ -138,6 +98,13 @@ export const AuthRules = {
     .string()
     .valid(...Object.values(RoleEnum))
     .default(RoleEnum.user),
+
+  level: joi
+    .string()
+    .valid(...Object.values(DifficultyLevelEnum))
+    .default(DifficultyLevelEnum.beginner),
+
+  language: joi.string().valid(...Object.values(LearningLanguageEnum)),
 
   parentCode: joi
     .string()

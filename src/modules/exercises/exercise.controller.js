@@ -32,10 +32,19 @@ exerciseRoutes.post(
   ES.createSentenceBuilderExercise,
 );
 
+// Count Exercises
+exerciseRoutes.get(
+  "/count-exercises",
+  authentication,
+  authorization([RoleEnum.admin]),
+  ES.countExercises,
+);
+
 // Fetch All Exercises Based On Level And Type
 exerciseRoutes.get(
   "/:type/:level",
   authentication,
+  authorization([RoleEnum.admin, RoleEnum.user]),
   validation(EV.getExercisesByTypeAndLevelSchema),
   ES.getExercisesByTypeAndLevel,
 );
@@ -44,6 +53,7 @@ exerciseRoutes.get(
 exerciseRoutes.get(
   "/:id",
   authentication,
+  authorization([RoleEnum.admin, RoleEnum.user]),
   validation(EV.getExerciseByIDSchema),
   ES.getExerciseByID,
 );
@@ -90,6 +100,3 @@ exerciseRoutes.patch(
 exerciseRoutes.use("/:exerciseId/attempt", attemptRoute);
 
 export default exerciseRoutes;
-
-// list
-// GET http://localhost:3000/exercises?page=1&size=10

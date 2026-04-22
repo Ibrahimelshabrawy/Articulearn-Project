@@ -7,19 +7,6 @@ import {
   RoleEnum,
 } from "../../common/enum/user.enum.js";
 
-const providerSchema = new mongoose.Schema(
-  {
-    provider: {
-      type: String,
-      enum: [ProviderEnum.google, ProviderEnum.system],
-      default: ProviderEnum.system,
-      required: true,
-    },
-    providerId: {type: String, default: null},
-  },
-  {_id: false},
-);
-
 const userSchema = new mongoose.Schema(
   {
     firstName: {
@@ -39,7 +26,9 @@ const userSchema = new mongoose.Schema(
 
     email: {
       type: String,
-      required: true,
+      required: function () {
+        return this.provider == ProviderEnum.system ? true : false;
+      },
       unique: true,
       lowercase: true,
       trim: true,
@@ -48,11 +37,18 @@ const userSchema = new mongoose.Schema(
 
     phone: {type: String, default: null, trim: true, index: true},
 
-    password: {type: String, default: null},
+    password: {
+      type: String,
+      default: null,
+      required: function () {
+        return this.provider == ProviderEnum.system ? true : false;
+      },
+    },
 
-    providers: {
-      type: [providerSchema],
-      default: [{provider: ProviderEnum.system}],
+    provider: {
+      type: String,
+      enum: Object.values(ProviderEnum),
+      default: ProviderEnum.system,
     },
     language: {
       type: String,

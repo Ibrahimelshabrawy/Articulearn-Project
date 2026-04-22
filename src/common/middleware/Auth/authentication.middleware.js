@@ -1,7 +1,9 @@
 import {
   ACCESS_SECRET_KEY_ADMIN,
+  ACCESS_SECRET_KEY_PARENT,
   ACCESS_SECRET_KEY_USER,
   PREFIX_ADMIN,
+  PREFIX_PARENT,
   PREFIX_USER,
 } from "../../../../config/config.service.js";
 import * as db_service from "../../../DB/db.services.js";
@@ -24,6 +26,8 @@ export const authentication = async (req, res, next) => {
     ACCESS_SECRET_KEY = ACCESS_SECRET_KEY_USER;
   } else if (prefix == PREFIX_ADMIN) {
     ACCESS_SECRET_KEY = ACCESS_SECRET_KEY_ADMIN;
+  } else if (prefix == PREFIX_PARENT) {
+    ACCESS_SECRET_KEY = ACCESS_SECRET_KEY_PARENT;
   } else {
     throw new Error("Invalid Prefix", {cause: 400});
   }

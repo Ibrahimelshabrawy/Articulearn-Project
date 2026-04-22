@@ -299,3 +299,29 @@ export const getExerciseByID = async (req, res, next) => {
     data: exercise,
   });
 };
+
+export const countExercises = async (req, res, next) => {
+  const [total, active, inactive] = await Promise.all([
+    db_services.countDocuments({
+      model: exerciseModel,
+    }),
+    db_services.countDocuments({
+      model: exerciseModel,
+      filter: {isActive: true},
+    }),
+    db_services.countDocuments({
+      model: exerciseModel,
+      filter: {isActive: false},
+    }),
+  ]);
+
+  successResponse({
+    res,
+    status: 200,
+    data: {
+      totalExercises: total,
+      activeExercises: active,
+      inactiveExercises: inactive,
+    },
+  });
+};

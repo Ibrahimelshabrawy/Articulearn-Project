@@ -12,9 +12,10 @@ import {GenerateToken} from "../../common/utils/jwt/token.service.js";
 import {OAuth2Client} from "google-auth-library";
 import {
   ACCESS_SECRET_KEY_ADMIN,
+  ACCESS_SECRET_KEY_PARENT,
   ACCESS_SECRET_KEY_USER,
   SALT_ROUND,
-  WEB_CLIENT_ID,
+  GOOGLE_CLIENT_ID,
 } from "../../../config/config.service.js";
 import {resolveParentIdByCode} from "./auth.helper.js";
 import {generateUniqueParentCode} from "../../common/utils/helpers/parentCode.helper.js";
@@ -32,10 +33,10 @@ export const signUp = async (req, res, next) => {
     role = RoleEnum.user,
     level,
     language,
-    providers,
     parentCode,
   } = req.body;
 
+  // check email exists
   const existing = await db_service.findOne({
     model: userModel,
     filter: {email},
@@ -43,37 +44,63 @@ export const signUp = async (req, res, next) => {
     options: {lean: true},
   });
 
-  if (existing) throw new Error("Email Already Exist", {cause: 409});
+  if (existing) {
+    throw new Error("Email Already Exist", {cause: 409});
+  }
 
   let parentId = null;
-  if (role === RoleEnum.user && parentCode) {
-    parentId = await resolveParentIdByCode({db_service, userModel, parentCode});
+
+  // لو child لازم parentCode
+  if (role === RoleEnum.user) {
+    if (!parentCode) {
+      throw new Error("Parent Code Required", {cause: 400});
+    }
+
+    parentId = await resolveParentIdByCode({
+      db_service,
+      userModel,
+      parentCode,
+    });
   }
 
   const userData = {
     firstName,
     lastName,
     email,
-    password: await Hash({plainText: password, salt_rounds: SALT_ROUND}),
+    password: await Hash({
+      plainText: password,
+      salt_rounds: SALT_ROUND,
+    }),
     gender,
     age,
     role,
-    level,
-    language,
-    providers,
     parentId,
   };
 
-  if (phone) userData.phone = await encrypt(phone);
+  // level خاص بالchild فقط
+  if (role === RoleEnum.user) {
+    userData.level = level;
+  }
 
-  // 4) create user
+  // تشفير رقم الموبايل لو موجود
+  if (phone) {
+    userData.phone = await encrypt(phone);
+  }
+
+  // create user
   const user = await db_service.create({
     model: userModel,
     data: userData,
   });
+
   let parentLinkCode = null;
+
+  // لو parent نولد له parentCode
   if (role === RoleEnum.parent) {
-    parentLinkCode = await generateUniqueParentCode({db_service, userModel});
+    parentLinkCode = await generateUniqueParentCode({
+      db_service,
+      userModel,
+    });
 
     await db_service.updateOne({
       model: userModel,
@@ -82,25 +109,23 @@ export const signUp = async (req, res, next) => {
     });
   }
 
-  const responsePayload = {
-    _id: user._id,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
-    role: user.role,
-    level: user.level,
-    language: user.language,
-    gender: user.gender,
-    age: user.age,
-    parentId: user.parentId ?? undefined,
-    ...(parentLinkCode ? {parentLinkCode} : {}),
-  };
-
   return successResponse({
     res,
     message: "Sign Up Successfully Enjoy 🥳",
-    status: 200,
-    data: responsePayload,
+    status: 201,
+    data: {
+      _id: user._id,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      role: user.role,
+      level: user.level,
+      language: user.language,
+      gender: user.gender,
+      age: user.age,
+      parentId: user.parentId ?? undefined,
+      ...(parentLinkCode ? {parentLinkCode} : {}),
+    },
   });
 };
 
@@ -122,12 +147,20 @@ export const signIn = async (req, res, next) => {
     throw new Error("Invalid Password", {cause: 400});
   }
 
+  let ACCESS_SECRET_KEY = "";
+  if (user.role == RoleEnum.user) {
+    ACCESS_SECRET_KEY = ACCESS_SECRET_KEY_USER;
+  } else if (user.role == RoleEnum.admin) {
+    ACCESS_SECRET_KEY = ACCESS_SECRET_KEY_ADMIN;
+  } else if (user.role == RoleEnum.parent) {
+    ACCESS_SECRET_KEY = ACCESS_SECRET_KEY_PARENT;
+  } else {
+    throw new Error("Invalid Role ❗", {cause: 400});
+  }
+
   const access_token = GenerateToken({
     payload: {id: user._id},
-    secret_key:
-      user.role == RoleEnum.admin
-        ? ACCESS_SECRET_KEY_ADMIN
-        : ACCESS_SECRET_KEY_USER,
+    secret_key: ACCESS_SECRET_KEY,
   });
 
   successResponse({
@@ -141,9 +174,12 @@ export const signIn = async (req, res, next) => {
 export const signUpWithGmail = async (req, res, next) => {
   const {idToken} = req.body;
   const client = new OAuth2Client();
+  if (!idToken) {
+    throw new Error("idToken is required", {cause: 400});
+  }
   const ticket = await client.verifyIdToken({
     idToken,
-    audience: WEB_CLIENT_ID,
+    audience: GOOGLE_CLIENT_ID,
   });
   const payload = ticket.getPayload();
 
@@ -167,14 +203,14 @@ export const signUpWithGmail = async (req, res, next) => {
     });
   }
 
-  if (user.provider == ProviderEnum.system) {
+  if (user.provider !== ProviderEnum.google) {
     throw new Error("Please Log In With System", {cause: 400});
   }
 
   // SignIn Steps
   const access_token = GenerateToken({
     payload: {
-      id: user.id,
+      id: user._id,
       email: user.email,
     },
     secret_key: SECRET_KEY,
