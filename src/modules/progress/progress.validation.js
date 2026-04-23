@@ -1,12 +1,8 @@
 import joi from "joi";
-import {objectId} from "../../utils/validation/objectId.validation.js";
+import {objectId} from "../../common/utils/helpers/objectId.validationHelper.js";
 
-export const childIdParamSchema = {
-  params: joi
-    .object({
-      childId: objectId.required(),
-    })
-    .required()
-    .message("Form Is Required")
-    .unknown(false),
+export const getChildProgressSchema = {
+  params: joi.object({
+    childId: objectId.id.required(),
+  }),
 };

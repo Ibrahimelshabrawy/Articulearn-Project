@@ -1,4 +1,4 @@
-import cloudinary from "../../../../Bookify App/src/common/utils/cloudinary/cloudinary.js";
+import cloudinary from "../../common/utils/cloudinary/cloudinary.js";
 import {TypeEnum} from "../../common/enum/exercise.enum.js";
 import {DifficultyLevelEnum, RoleEnum} from "../../common/enum/user.enum.js";
 import {successResponse} from "../../common/utils/response/success.response.js";
@@ -65,7 +65,7 @@ export const createSentenceBuilderExercise = async (req, res, next) => {
 
   gameAudioUrl = {
     secure_url: gameAudioUrl.secure_url,
-    public_id: gameAudioUrl.secure_url,
+    public_id: gameAudioUrl.public_id,
   };
 
   const exercise = await db_services.create({
@@ -96,46 +96,54 @@ export const createSentenceBuilderExercise = async (req, res, next) => {
 export const updateExerciseForPronunciation = async (req, res, next) => {
   const {id} = req.params;
 
-  let {level, language, title, promptText, referenceAudioUrl, isActive} =
-    req.body;
+  let {level, language, title, promptText, isActive} = req.body;
 
   const findExercise = await db_services.findById({
     model: exerciseModel,
     id,
   });
+
   if (!findExercise) {
-    throw new Error("Exercise Not Found😥❗", {cause: 404});
+    throw new Error("Exercise Not Found 😥❗", {cause: 404});
   }
 
   if (req.file) {
-    if (findExercise.referenceAudioUrl.public_id) {
+    if (findExercise.referenceAudioUrl?.public_id) {
       await cloudinary.uploader.destroy(
         findExercise.referenceAudioUrl.public_id,
         {resource_type: "video"},
       );
     }
+
+    const refAudioUrl = await cloudinary.uploader.upload(req.file.path, {
+      folder: "Articulearn/Pronunciation/referenceAudioUrl",
+      resource_type: "video",
+    });
+
+    findExercise.referenceAudioUrl = {
+      secure_url: refAudioUrl.secure_url,
+      public_id: refAudioUrl.public_id,
+    };
+
+    fs.unlinkSync(req.file.path);
   }
 
-  let refAudioUrl = await cloudinary.uploader.upload(req.file.path, {
-    folder: "Articulearn/Pronunciation/referenceAudioUrl",
-    resource_type: "video",
-  });
-  findExercise.referenceAudioUrl = {
-    secure_url: refAudioUrl.secure_url,
-    public_id: refAudioUrl.public_id,
-  };
+  const updateData = {};
+
+  if (level !== undefined) updateData.level = level;
+  if (language !== undefined) updateData.language = language;
+  if (title !== undefined) updateData.title = title;
+  if (promptText !== undefined) updateData.promptText = promptText;
+  if (isActive !== undefined) updateData.isActive = isActive;
+
+  if (req.file) {
+    updateData.referenceAudioUrl = findExercise.referenceAudioUrl;
+  }
 
   const exercise = await db_services.findOneAndUpdate({
     model: exerciseModel,
     filter: {_id: id},
-    update: {
-      level,
-      language,
-      title,
-      promptText,
-      referenceAudioUrl: findExercise.referenceAudioUrl,
-      isActive,
-    },
+    update: updateData,
   });
 
   successResponse({

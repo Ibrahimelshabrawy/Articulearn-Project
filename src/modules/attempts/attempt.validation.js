@@ -21,11 +21,12 @@ export const createSentenceBuilderAttemptSchema = {
     .unknown(false),
 };
 
-// export const listAttemptsQuerySchema = joi
-//   .object({
-//     exerciseId: objectId,
-//     type: ExerciseRules.type.required(),
-//     page: ExerciseRules.page,
-//     size: ExerciseRules.size,
-//   })
-//   .unknown(false);
+export const createPronunciationAttemptSchema = {
+  params: joi
+    .object({
+      exerciseId: objectId.id.required(),
+    })
+    .required(),
+
+  file: ExerciseRules.file.required(),
+};

@@ -6,19 +6,18 @@ const progressSchema = new mongoose.Schema(
       ref: "User",
       required: true,
       unique: true,
-      index: true,
     },
 
-    points: {
-      type: Number,
-      default: 0,
-      min: 0,
+    pronunciation: {
+      totalAttempts: {type: Number, default: 0},
+      correctAttempts: {type: Number, default: 0},
+      avgAccuracy: {type: Number, default: 0},
     },
-    overall: {
-      avgScore: {type: Number, min: 0, max: 100, default: null},
-      bestScore: {type: Number, min: 0, max: 100, default: null},
-      totalAttempts: {type: Number, default: 0, min: 0},
-      correctCount: {type: Number, default: 0, min: 0},
+
+    sentenceBuilder: {
+      totalAttempts: {type: Number, default: 0},
+      correctAttempts: {type: Number, default: 0},
+      totalScore: {type: Number, default: 0},
     },
 
     lastAttemptAt: {

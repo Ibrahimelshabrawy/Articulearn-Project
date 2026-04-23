@@ -1,9 +1,9 @@
 import {RoleEnum} from "../../common/enum/user.enum.js";
 import {successResponse} from "../../common/utils/response/success.response.js";
-import * as db_service from "../../DB/db.services.js";
 import attemptModel from "../../DB/models/attempt.model.js";
 import progressModel from "../../DB/models/progress.model.js";
 import userModel from "../../DB/models/user.model.js";
+import * as db_service from "../../DB/db.services.js";
 
 export const getProfile = async (req, res, next) => {
   successResponse({
@@ -98,5 +98,25 @@ export const deleteProfile = async (req, res, next) => {
     res,
     status: 200,
     message: "Profile deleted successfully 🗑️",
+  });
+};
+
+export const getChildrenProfiles = async (req, res, next) => {
+  const getChildren = await db_service.find({
+    model: userModel,
+    filter: {parentId: req.user._id},
+    select: "firstName lastName email",
+  });
+
+  const children = getChildren.map((child) => ({
+    userName: `${child.firstName} ${child.lastName}`,
+    email: child.email,
+  }));
+
+  successResponse({
+    res,
+    status: 200,
+    message: "Your Children Profiles",
+    data: children,
   });
 };

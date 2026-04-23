@@ -5,6 +5,8 @@ import {authentication} from "../../common/middleware/Auth/authentication.middle
 import validation from "../../common/middleware/Validation/validation.middleware.js";
 import {authorization} from "../../common/middleware/Auth/authorization.middleware.js";
 import {RoleEnum} from "../../common/enum/user.enum.js";
+import multer_host from "../../common/middleware/multer/multer.js";
+import {MulterEnum} from "../../common/enum/multer.enum.js";
 
 const attemptRoute = Router({mergeParams: true});
 
@@ -14,6 +16,15 @@ attemptRoute.post(
   authorization(RoleEnum.user),
   validation(AV.createSentenceBuilderAttemptSchema),
   AS.createSentenceBuilderAttempt,
+);
+
+attemptRoute.post(
+  "/pronunciation",
+  authentication,
+  authorization(RoleEnum.user),
+  multer_host([...MulterEnum.audio]).single("audioUrl"),
+  validation(AV.createPronunciationAttemptSchema),
+  AS.createPronunciationAttempt,
 );
 
 export default attemptRoute;

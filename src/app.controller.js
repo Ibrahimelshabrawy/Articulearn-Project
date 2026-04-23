@@ -6,6 +6,7 @@ import authRouter from "./modules/auth/auth.controller.js";
 import exerciseRoutes from "./modules/exercises/exercise.controller.js";
 import attemptRoute from "./modules/attempts/attempt.controller.js";
 import {redisConnection} from "./DB/redis/redis.db.js";
+import progressRouter from "./modules/progress/progress.controller.js";
 const app = express();
 const port = process.env.PORT;
 
@@ -20,6 +21,7 @@ const bootstrap = () => {
   app.use("/auth", authRouter);
   app.use("/exercises", exerciseRoutes);
   app.use("/attempt", attemptRoute);
+  app.use("/progress", progressRouter);
 
   app.use("{/*demo}", (req, res, next) => {
     throw new Error("`The URL ${req.originalUrl} Is Not Found 😥`", {

@@ -13,6 +13,7 @@ export const PORT = +process.env.PORT;
 export const SALT_ROUND = +process.env.SALT_ROUND;
 export const DB_URI = process.env.DB_URI;
 export const REDIS_URI = process.env.REDIS_URI;
+export const AI_URL = process.env.AI_URL;
 
 export const ACCESS_SECRET_KEY_USER = process.env.ACCESS_SECRET_KEY_USER;
 export const ACCESS_SECRET_KEY_ADMIN = process.env.ACCESS_SECRET_KEY_ADMIN;

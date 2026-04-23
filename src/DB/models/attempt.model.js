@@ -54,6 +54,12 @@ const attemptSchema = new mongoose.Schema(
       index: true,
     },
 
+    accuracy: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: null,
+    },
     score: {type: Number, min: 0, max: 100, default: null},
     feedback: {type: String, default: null, trim: true},
 
@@ -67,7 +73,6 @@ const attemptSchema = new mongoose.Schema(
   },
 );
 
-// validation حسب النوع
 attemptSchema.pre("validate", function () {
   if (this.type === TypeEnum.pronunciation) {
     if (!this.audioUrl) {

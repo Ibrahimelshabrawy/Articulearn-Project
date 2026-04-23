@@ -213,7 +213,7 @@ export const signUpWithGmail = async (req, res, next) => {
       id: user._id,
       email: user.email,
     },
-    secret_key: SECRET_KEY,
+    secret_key: ACCESS_SECRET_KEY_USER,
   });
 
   successResponse({

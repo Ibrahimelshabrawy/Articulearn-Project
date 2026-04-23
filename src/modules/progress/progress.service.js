@@ -1,11 +1,13 @@
 import * as db_services from "../../DB/db.services.js";
 import progressModel from "../../DB/models/progress.model.js";
+import userModel from "../../DB/models/user.model.js";
 import {TypeEnum} from "../../common/enum/exercise.enum.js";
+import {successResponse} from "../../common/utils/response/success.response.js";
 
 export const updateProgressAfterAttempt = async ({
   userId,
-  score,
   type,
+  accuracy = null,
   isCorrect = null,
 }) => {
   let progress = await db_services.findOne({
@@ -13,56 +15,137 @@ export const updateProgressAfterAttempt = async ({
     filter: {userId},
   });
 
+  // create progress لو مش موجود
   if (!progress) {
     progress = await db_services.create({
       model: progressModel,
-      data: {
-        userId,
-        points: 0,
-        overall: {
-          avgScore: null,
-          bestScore: null,
-          totalAttempts: 0,
-          correctCount: 0,
-        },
-        lastAttemptAt: null,
-      },
+      data: {userId},
     });
   }
 
-  const oldTotalAttempts = progress.overall.totalAttempts;
-  const oldAvgScore = progress.overall.avgScore ?? 0;
-  const oldBestScore = progress.overall.bestScore ?? 0;
-  const oldCorrectCount = progress.overall.correctCount ?? 0;
-  const oldPoints = progress.points ?? 0;
+  // ======================
+  // pronunciation progress
+  // ======================
+  if (type === TypeEnum.pronunciation) {
+    const oldAttempts = progress.pronunciation.totalAttempts;
+    const oldAvgAccuracy = progress.pronunciation.avgAccuracy;
 
-  // totalAttempts
-  const newTotalAttempts = oldTotalAttempts + 1;
+    const newAttempts = oldAttempts + 1;
 
-  // avgScore
-  const newAvgScore =
-    (oldAvgScore * oldTotalAttempts + score) / newTotalAttempts;
+    // correctAttempts لو accuracy > 50
+    if (accuracy > 50) {
+      progress.pronunciation.correctAttempts += 1;
+    }
 
-  // bestScore
-  const newBestScore = Math.max(oldBestScore, score);
+    // update avgAccuracy
+    const newAvgAccuracy =
+      (oldAvgAccuracy * oldAttempts + accuracy) / newAttempts;
 
-  // points
-  const newPoints = oldPoints + score;
+    progress.pronunciation.totalAttempts = newAttempts;
 
-  // correctCount
-  let newCorrectCount = oldCorrectCount;
-  if (type === TypeEnum.sentence_builder && isCorrect === true) {
-    newCorrectCount += 1;
+    progress.pronunciation.avgAccuracy = Number(newAvgAccuracy.toFixed(2));
   }
 
-  progress.points = newPoints;
-  progress.overall.avgScore = Number(newAvgScore.toFixed(2));
-  progress.overall.bestScore = newBestScore;
-  progress.overall.totalAttempts = newTotalAttempts;
-  progress.overall.correctCount = newCorrectCount;
+  // ======================
+  // sentence builder progress
+  // ======================
+  if (type === TypeEnum.sentence_builder) {
+    progress.sentenceBuilder.totalAttempts += 1;
+
+    if (isCorrect) {
+      progress.sentenceBuilder.correctAttempts += 1;
+      progress.sentenceBuilder.totalScore += 100;
+    }
+  }
+
   progress.lastAttemptAt = new Date();
 
   await progress.save();
 
   return progress;
+};
+
+export const getPronunciationProgress = async (req, res, next) => {
+  const progress = await db_services.findOne({
+    model: progressModel,
+    filter: {userId: req.user._id},
+    select: "pronunciation",
+  });
+
+  if (!progress) {
+    return successResponse({
+      res,
+      message: "No pronunciation progress yet",
+      data: {
+        totalAttempts: 0,
+        correctAttempts: 0,
+        avgAccuracy: 0,
+      },
+    });
+  }
+
+  successResponse({
+    res,
+    message: "Pronunciation Progress Fetched Successfully 🎤",
+    data: progress.pronunciation,
+  });
+};
+
+export const getSentenceBuilderProgress = async (req, res, next) => {
+  const progress = await db_services.findOne({
+    model: progressModel,
+    filter: {userId: req.user._id},
+    select: "sentenceBuilder",
+  });
+
+  if (!progress) {
+    return successResponse({
+      res,
+      message: "No sentence builder progress yet",
+      data: {
+        totalAttempts: 0,
+        correctAttempts: 0,
+        totalScore: 0,
+      },
+    });
+  }
+
+  successResponse({
+    res,
+    message: "Sentence Builder Progress Fetched Successfully 🧩",
+    data: progress.sentenceBuilder,
+  });
+};
+
+export const getChildProgress = async (req, res, next) => {
+  const {childId} = req.params;
+
+  const child = await db_services.findOne({
+    model: userModel,
+    filter: {_id: childId},
+    select: "parentId",
+  });
+
+  if (!child) {
+    throw new Error("Child not found", {cause: 404});
+  }
+
+  const isAdmin = req.user.role === RoleEnum.admin;
+  const isParent = child.parentId?.toString() === req.user._id.toString();
+  const isSelf = req.user._id.toString() === childId;
+
+  if (!isAdmin && !isParent && !isSelf) {
+    throw new Error("Not authorized to view this progress", {cause: 403});
+  }
+
+  const progress = await db_services.findOne({
+    model: progressModel,
+    filter: {userId: childId},
+  });
+
+  successResponse({
+    res,
+    message: "Child progress fetched successfully 📊",
+    data: progress,
+  });
 };

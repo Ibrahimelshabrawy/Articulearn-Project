@@ -52,7 +52,7 @@ export const ExerciseRules = {
       size: joi.number(),
     })
     .messages({
-      "any.required": "File is required",
+      "any.required": "Audio File is required",
     }),
 };
 
