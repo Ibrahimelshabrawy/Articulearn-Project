@@ -65,58 +65,6 @@ export const updateProgressAfterAttempt = async ({
   return progress;
 };
 
-export const getPronunciationProgress = async (req, res, next) => {
-  const progress = await db_services.findOne({
-    model: progressModel,
-    filter: {userId: req.user._id},
-    select: "pronunciation",
-  });
-
-  if (!progress) {
-    return successResponse({
-      res,
-      message: "No pronunciation progress yet",
-      data: {
-        totalAttempts: 0,
-        correctAttempts: 0,
-        avgAccuracy: 0,
-      },
-    });
-  }
-
-  successResponse({
-    res,
-    message: "Pronunciation Progress Fetched Successfully 🎤",
-    data: progress.pronunciation,
-  });
-};
-
-export const getSentenceBuilderProgress = async (req, res, next) => {
-  const progress = await db_services.findOne({
-    model: progressModel,
-    filter: {userId: req.user._id},
-    select: "sentenceBuilder",
-  });
-
-  if (!progress) {
-    return successResponse({
-      res,
-      message: "No sentence builder progress yet",
-      data: {
-        totalAttempts: 0,
-        correctAttempts: 0,
-        totalScore: 0,
-      },
-    });
-  }
-
-  successResponse({
-    res,
-    message: "Sentence Builder Progress Fetched Successfully 🧩",
-    data: progress.sentenceBuilder,
-  });
-};
-
 export const getChildProgress = async (req, res, next) => {
   const {childId} = req.params;
 
@@ -142,6 +90,25 @@ export const getChildProgress = async (req, res, next) => {
     model: progressModel,
     filter: {userId: childId},
   });
+
+  if (!progress) {
+    return successResponse({
+      res,
+      message: "No progress yet",
+      data: {
+        pronunciation: {
+          totalAttempts: 0,
+          correctAttempts: 0,
+          avgAccuracy: 0,
+        },
+        sentenceBuilder: {
+          totalAttempts: 0,
+          correctAttempts: 0,
+          totalScore: 0,
+        },
+      },
+    });
+  }
 
   successResponse({
     res,

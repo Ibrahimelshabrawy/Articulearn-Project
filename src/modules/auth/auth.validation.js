@@ -29,7 +29,10 @@ export const signUpSchema = {
     age: AuthRules.age.required().messages({
       "any.required": "Parent Code Is Required",
     }),
-    role: AuthRules.role,
+    role: joi
+      .string()
+      .valid(RoleEnum.user, RoleEnum.parent)
+      .default(RoleEnum.user),
 
     level: joi.when("role", {
       is: RoleEnum.user,
