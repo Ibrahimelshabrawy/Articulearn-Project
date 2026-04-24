@@ -7,12 +7,20 @@ import exerciseRoutes from "./modules/exercises/exercise.controller.js";
 import attemptRoute from "./modules/attempts/attempt.controller.js";
 import {redisConnection} from "./DB/redis/redis.db.js";
 import progressRouter from "./modules/progress/progress.controller.js";
+import helmet from "helmet";
+import {rateLimit} from "express-rate-limit";
+
 const app = express();
 const port = process.env.PORT;
 
 const bootstrap = () => {
-  // app.use(cors({origin: "*"}));
-  app.use(express.json());
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    limit: 100,
+  });
+
+  app.use(cors({origin: "*"}));
+  app.use(helmet(), limiter, express.json());
   app.get("/", (req, res) => res.send("Welcome To Our Application 🥳"));
   checkConnection();
   redisConnection();
