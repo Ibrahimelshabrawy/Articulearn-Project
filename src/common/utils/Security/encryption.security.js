@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import {ENCRYPT_SECRET_KEY} from "../../../../config/config.service.js";
 const IV_LENGTH = 16;
-const ENCRYPTION_SECRET_KEY = Buffer.from(ENCRYPT_SECRET_KEY, "hex"); //must be 32
+const ENCRYPTION_SECRET_KEY = Buffer.from(ENCRYPT_SECRET_KEY); //must be 32
 
 export const encrypt = async (text) => {
   const iv = crypto.randomBytes(IV_LENGTH);
