@@ -12,6 +12,7 @@ dotenv.config({path: resolve(`config/${envPaths[NODE_ENV]}`)});
 export const PORT = +process.env.PORT;
 export const SALT_ROUND = +process.env.SALT_ROUND;
 export const DB_URI = process.env.DB_URI;
+export const DB_URI_ONLINE = process.env.DB_URI_ONLINE;
 export const REDIS_URI = process.env.REDIS_URI;
 export const AI_URL = process.env.AI_URL;
 
