@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
 import {resolve} from "node:path";
 
-const NODE_ENV = process.env.NODE_ENV;
+const NODE_ENV = process.env.NODE_ENV || "development";
 
 let envPaths = {
   development: "development.env",
