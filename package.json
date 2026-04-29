@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "start:dev": "cross-env NODE_ENV=development pm2 start src/index.js -i 1",
-    "start:prod": "cross-env NODE_ENV=production node src/index.js",
+    "start:prod": "cross-env NODE_ENV=production nodemon src/index.js",
     "seed:admin": "cross-env NODE_ENV=development node src/seeds.createAdmin.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },

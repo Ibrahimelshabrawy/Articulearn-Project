@@ -9,5 +9,7 @@ export const MulterEnum = {
     "audio/webm",
     "audio/aac",
     "audio/flac",
+    "application/octet-stream",
+    "audio/vnd.wave",
   ],
 };
