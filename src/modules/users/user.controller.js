@@ -28,7 +28,7 @@ userRouter.delete("/delete", authentication, US.deleteProfile);
 userRouter.get(
   "/parent/code",
   authentication,
-  authorization([RoleEnum.parent]),
+  authorization([RoleEnum.parent, RoleEnum.user]),
   US.getParentCode,
 );
 
