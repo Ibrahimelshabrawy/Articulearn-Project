@@ -167,7 +167,7 @@ export const signIn = async (req, res, next) => {
     res,
     message: "Sign In Successfully Enjoy 🥳",
     status: 200,
-    data: {access_token},
+    data: {access_token, role: user.role},
   });
 };
 

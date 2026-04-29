@@ -25,6 +25,12 @@ userRouter.patch(
   US.updateProfile,
 );
 userRouter.delete("/delete", authentication, US.deleteProfile);
+userRouter.get(
+  "/parent/code",
+  authentication,
+  authorization([RoleEnum.parent]),
+  US.getParentCode,
+);
 
 userRouter.use("/parent/child/:childId", progressRouter);
 

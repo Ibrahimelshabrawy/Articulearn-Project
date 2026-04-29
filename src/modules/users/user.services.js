@@ -105,10 +105,11 @@ export const getChildrenProfiles = async (req, res, next) => {
   const getChildren = await db_service.find({
     model: userModel,
     filter: {parentId: req.user._id},
-    select: "firstName lastName email",
+    select: "_id firstName lastName email",
   });
 
   const children = getChildren.map((child) => ({
+    id: child._id,
     userName: `${child.firstName} ${child.lastName}`,
     email: child.email,
   }));
@@ -118,5 +119,26 @@ export const getChildrenProfiles = async (req, res, next) => {
     status: 200,
     message: "Your Children Profiles",
     data: children,
+  });
+};
+
+export const getParentCode = async (req, res, next) => {
+  const user = await db_service.findById({
+    model: userModel,
+    id: req.user._id,
+    select: "parentLinkCode",
+    options: {
+      lean: true,
+    },
+  });
+  if (!user) {
+    throw new Error("User Not Exist", {cause: 404});
+  }
+
+  successResponse({
+    res,
+    message: "Your Parent Code",
+    status: 200,
+    data: user,
   });
 };

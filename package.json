@@ -6,7 +6,8 @@
   "scripts": {
     "start:dev": "cross-env NODE_ENV=development pm2 start src/index.js -i 1",
     "start:prod": "cross-env NODE_ENV=production node src/index.js",
-    "seed:admin": "cross-env NODE_ENV=development node src/seeds.createAdmin.js"
+    "seed:admin": "cross-env NODE_ENV=development node src/seeds.createAdmin.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "engines": {
     "node": "24.12.0"
@@ -35,6 +36,8 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "cross-env": "^10.1.0"
+    "cross-env": "^10.1.0",
+    "jest": "^30.3.0",
+    "supertest": "^7.2.2"
   }
 }

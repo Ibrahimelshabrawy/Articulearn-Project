@@ -2,6 +2,7 @@ import * as db_services from "../../DB/db.services.js";
 import progressModel from "../../DB/models/progress.model.js";
 import userModel from "../../DB/models/user.model.js";
 import {TypeEnum} from "../../common/enum/exercise.enum.js";
+import {RoleEnum} from "../../common/enum/user.enum.js";
 import {successResponse} from "../../common/utils/response/success.response.js";
 
 export const updateProgressAfterAttempt = async ({
@@ -113,6 +114,39 @@ export const getChildProgress = async (req, res, next) => {
   successResponse({
     res,
     message: "Child progress fetched successfully 📊",
+    data: progress,
+  });
+};
+
+export const getMyProgress = async (req, res, next) => {
+  const progress = await db_services.findOne({
+    model: progressModel,
+    filter: {userId: req.user._id},
+    select: "pronunciation sentenceBuilder lastAttemptAt",
+  });
+
+  if (!progress) {
+    return successResponse({
+      res,
+      message: "No progress yet 📊",
+      data: {
+        pronunciation: {
+          totalAttempts: 0,
+          correctAttempts: 0,
+          avgAccuracy: 0,
+        },
+        sentenceBuilder: {
+          totalAttempts: 0,
+          correctAttempts: 0,
+          totalScore: 0,
+        },
+      },
+    });
+  }
+
+  successResponse({
+    res,
+    message: "Your progress fetched successfully 📈",
     data: progress,
   });
 };

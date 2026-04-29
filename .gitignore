@@ -1,3 +1,5 @@
 /node_modules
 /config/*.env
 src/seeds.createAdmin.js
+/tests
+/jest.config.js
