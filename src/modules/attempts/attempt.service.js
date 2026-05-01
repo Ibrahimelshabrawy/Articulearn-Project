@@ -96,7 +96,7 @@ export const createPronunciationAttempt = async (req, res, next) => {
   formData.append("target_word", exercise.promptText);
   formData.append("file", fs.createReadStream(req.file.path));
 
-  const {data} = await axios.post(`${AI_URL}/evaluate`, formData, {
+  const {data} = await axios.post(`${AI_URL}`, formData, {
     headers: formData.getHeaders(),
   });
 
