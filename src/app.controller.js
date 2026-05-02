@@ -14,13 +14,13 @@ const app = express();
 const port = process.env.PORT;
 
 const bootstrap = () => {
-  const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    limit: 100,
-  });
+  // const limiter = rateLimit({
+  //   windowMs: 60 * 1000,
+  //   limit: 10000,
+  // });
 
   app.use(cors({origin: "*"}));
-  app.use(helmet(), limiter, express.json());
+  app.use(helmet(), express.json());
   app.get("/", (req, res) => res.send("Welcome To Our Application 🥳"));
   checkConnection();
   redisConnection();
