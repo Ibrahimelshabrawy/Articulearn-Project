@@ -47,7 +47,7 @@ A backend API for the Articulearn platform with role-based authentication, exerc
 ## 🛠 Installation
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/Ibrahimelshabrawy/Articulearn-Project.git
 cd "Articulearn Project"
 npm install
 ```
@@ -101,7 +101,7 @@ npm run start:prod
 
 This project is deployed and available in production.
 
-- Live URL: `[ADD_DEPLOYMENT_URL_HERE]`
+- Live URL: `http://54.163.152.172`
 - Confirm production environment variables are configured properly
 
 ---
