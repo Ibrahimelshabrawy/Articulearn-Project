@@ -56,8 +56,6 @@ export const createSentenceBuilderExercise = async (req, res, next) => {
     isActive,
   } = req.body;
 
-  options = options ? options.split(",").map((item) => item.trim()) : [];
-
   gameAudioUrl = await cloudinary.uploader.upload(req.file.path, {
     folder: "Articulearn/SentenceBuilder/GameAudioUrl",
     resource_type: "video",
@@ -182,16 +180,16 @@ export const updateExerciseForSentence = async (req, res, next) => {
         resource_type: "video",
       });
     }
-  }
 
-  let gameAudioUri = await cloudinary.uploader.upload(req.file.path, {
-    folder: "Articulearn/SentenceBuilder/GameAudioUrl",
-    resource_type: "video",
-  });
-  findExercise.gameAudioUrl = {
-    secure_url: gameAudioUri.secure_url,
-    public_id: gameAudioUri.public_id,
-  };
+    let gameAudioUri = await cloudinary.uploader.upload(req.file.path, {
+      folder: "Articulearn/SentenceBuilder/GameAudioUrl",
+      resource_type: "video",
+    });
+    findExercise.gameAudioUrl = {
+      secure_url: gameAudioUri.secure_url,
+      public_id: gameAudioUri.public_id,
+    };
+  }
 
   const exercise = await db_services.findOneAndUpdate({
     model: exerciseModel,

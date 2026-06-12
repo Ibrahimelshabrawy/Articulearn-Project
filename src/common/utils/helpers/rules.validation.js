@@ -37,7 +37,7 @@ export const ExerciseRules = {
 
   // sentence_builder
   sentenceTemplate: joi.string().trim().min(1).allow(null),
-  options: joi.string(),
+  options: joi.array().items(joi.string()),
   correctAnswer: joi.string().trim().min(1).allow(null),
 
   file: joi
