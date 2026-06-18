@@ -4,6 +4,7 @@ import {DifficultyLevelEnum, RoleEnum} from "../../common/enum/user.enum.js";
 import {successResponse} from "../../common/utils/response/success.response.js";
 import * as db_services from "../../DB/db.services.js";
 import exerciseModel from "../../DB/models/exercise.model.js";
+import fs from "node:fs";
 
 export const createPronunciationExercise = async (req, res, next) => {
   let {level, language, title, promptText, referenceAudioUrl, isActive} =
