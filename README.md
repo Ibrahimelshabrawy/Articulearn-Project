@@ -106,6 +106,14 @@ This project is deployed and available in production.
 
 ---
 
+## 🎥 Demo Video
+
+Watch the full Bookify App demo here:
+
+[▶️ Watch Bookify App Demo](https://drive.google.com/file/d/1qQ4p-mc_b-tLoxooBZ4PtAMLDVfXh-ge/view)
+
+---
+
 ## 🔌 API Endpoints
 
 ### Auth
